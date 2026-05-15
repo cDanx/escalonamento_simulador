@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Round Robin — Escalonamento</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #0a0a0a; font-family: 'Inter', system-ui, sans-serif; }
+  #root { position: fixed; inset: 0; }
+  .panel-btn {
+    position: fixed; right: 20px; bottom: 80px;
+    background: rgba(20,20,20,0.92); color: #fafafa;
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;
+    padding: 10px 14px; cursor: pointer; font-family: inherit;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.05em;
+    z-index: 9998;
+  }
+  .panel-btn:hover { background: rgba(40,40,40,0.95); }
+  .panel-btn.config { right: 110px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+  window.TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "cardHeight": 72,
+    "cardGap": 10,
+    "topOffset": 150,
+    "modalPaddingH": 38
+  }/*EDITMODE-END*/;
+</script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="simulator.js"></script>
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel" src="rr-scene.jsx"></script>
+
+<script type="text/babel">
+  function TweaksPanel({ values, onChange, onClose }) {
+    const field = (key, label, min, max, step, suffix) => (
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#e5e5e5' }}>{label}</label>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#a3a3a3' }}>
+            {values[key]}{suffix || ''}
+          </span>
+        </div>
+        <input
+          type="range"
+          min={min} max={max} step={step}
+          value={values[key]}
+          onChange={(e) => onChange(key, Number(e.target.value))}
+          style={{ width: '100%' }}
+        />
+      </div>
+    );
+    return (
+      <div style={{
+        position: 'fixed', right: 20, bottom: 130, width: 280,
+        background: 'rgba(20,20,20,0.96)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 12, padding: 18, color: '#fafafa',
+        zIndex: 9999, boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.05em' }}>TWEAKS</div>
+          <button onClick={onClose} style={{
+            background: 'transparent', border: 'none', color: '#a3a3a3',
+            cursor: 'pointer', fontSize: 18, padding: 0, lineHeight: 1,
+          }}>×</button>
+        </div>
+        <div style={{ fontSize: 11, color: '#a3a3a3', marginBottom: 14, lineHeight: 1.4 }}>
+          Ajuste o layout dos cards dentro de cada modal.
+        </div>
+        {field('cardHeight', 'Altura do card', 60, 110, 2, 'px')}
+        {field('cardGap', 'Espaço entre cards', 4, 24, 1, 'px')}
+        {field('topOffset', 'Offset do topo', 150, 220, 2, 'px')}
+        {field('modalPaddingH', 'Padding lateral', 10, 40, 1, 'px')}
+      </div>
+    );
+  }
+
+  function ConfigPanel({ config, onChange, onClose }) {
+    const setQuantum = (v) => onChange({ ...config, quantum: v });
+    const setBlock = (v) => onChange({ ...config, blockDuration: v });
+    const setProc = (idx, key, value) => {
+      const procs = config.processes.map((p, i) => i === idx ? { ...p, [key]: value } : p);
+      onChange({ ...config, processes: procs });
+    };
+
+    const numStyle = {
+      width: 56, padding: '4px 6px', fontSize: 12,
+      background: 'rgba(255,255,255,0.06)', color: '#fafafa',
+      border: '1px solid rgba(255,255,255,0.12)', borderRadius: 4,
+      fontFamily: 'JetBrains Mono, monospace',
+    };
+
+    return (
+      <div style={{
+        position: 'fixed', right: 20, bottom: 130, width: 360,
+        background: 'rgba(20,20,20,0.96)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 12, padding: 18, color: '#fafafa',
+        zIndex: 9999, boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+        maxHeight: '75vh', overflowY: 'auto',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.05em' }}>SIMULAÇÃO</div>
+          <button onClick={onClose} style={{
+            background: 'transparent', border: 'none', color: '#a3a3a3',
+            cursor: 'pointer', fontSize: 18, padding: 0, lineHeight: 1,
+          }}>×</button>
+        </div>
+
+        <div style={{ display: 'flex', gap: 12, marginBottom: 18 }}>
+          <label style={{ fontSize: 12, flex: 1 }}>
+            <div style={{ marginBottom: 4, color: '#a3a3a3' }}>Quantum</div>
+            <input type="number" min={1} max={10} value={config.quantum}
+              onChange={(e) => setQuantum(Math.max(1, Number(e.target.value) || 1))}
+              style={numStyle} />
+          </label>
+          <label style={{ fontSize: 12, flex: 1 }}>
+            <div style={{ marginBottom: 4, color: '#a3a3a3' }}>Bloqueio E/S</div>
+            <input type="number" min={1} max={10} value={config.blockDuration}
+              onChange={(e) => setBlock(Math.max(1, Number(e.target.value) || 1))}
+              style={numStyle} />
+          </label>
+        </div>
+
+        <div style={{ fontSize: 11, color: '#a3a3a3', marginBottom: 8, fontWeight: 600, letterSpacing: '0.08em' }}>PROCESSOS</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '24px 1fr 1fr 1fr', gap: 8, fontSize: 10, color: '#737373', marginBottom: 6 }}>
+          <div>ID</div><div>Burst</div><div>Chega</div><div>Tipo</div>
+        </div>
+        {config.processes.map((p, idx) => (
+          <div key={p.id} style={{ display: 'grid', gridTemplateColumns: '24px 1fr 1fr 1fr', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: p.color, fontFamily: 'JetBrains Mono, monospace' }}>P{p.id}</div>
+            <input type="number" min={1} max={30} value={p.burst}
+              onChange={(e) => setProc(idx, 'burst', Math.max(1, Number(e.target.value) || 1))}
+              style={numStyle} />
+            <input type="number" min={0} max={50} value={p.arrival}
+              onChange={(e) => setProc(idx, 'arrival', Math.max(0, Number(e.target.value) || 0))}
+              style={numStyle} />
+            <select value={p.io ? 'io' : 'cpu'}
+              onChange={(e) => setProc(idx, 'io', e.target.value === 'io')}
+              style={{ ...numStyle, width: 'auto' }}>
+              <option value="cpu">CPU</option>
+              <option value="io">E/S</option>
+            </select>
+          </div>
+        ))}
+
+        <div style={{ fontSize: 11, color: '#737373', marginTop: 12, lineHeight: 1.4 }}>
+          Mudanças recompõem a animação. Processos E/S rodam 1 ciclo e bloqueiam.
+        </div>
+      </div>
+    );
+  }
+
+  function App() {
+    const [tweaksOpen, setTweaksOpen] = React.useState(false);
+    const [configOpen, setConfigOpen] = React.useState(false);
+    const [tweaks, setTweaks] = React.useState(window.TWEAK_DEFAULTS);
+    const [config, setConfig] = React.useState(window.RRSimulator.DEFAULT_CONFIG);
+
+    const timeline = React.useMemo(() => window.RRSimulator.simulate(config), [config]);
+    const totalCycles = timeline.length;
+    const duration = INTRO_DURATION + totalCycles * CYCLE_DURATION + 3;
+
+    React.useEffect(() => {
+      const onMsg = (e) => {
+        if (!e.data || typeof e.data !== 'object') return;
+        if (e.data.type === '__activate_edit_mode') setTweaksOpen(true);
+        if (e.data.type === '__deactivate_edit_mode') setTweaksOpen(false);
+      };
+      window.addEventListener('message', onMsg);
+      window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+      return () => window.removeEventListener('message', onMsg);
+    }, []);
+
+    const handleTweakChange = (key, value) => {
+      const next = { ...tweaks, [key]: value };
+      setTweaks(next);
+      window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: value } }, '*');
+    };
+
+    const persistKey = `rr-scheduler-v3-${config.quantum}-${config.blockDuration}-${config.processes.map(p => `${p.burst}.${p.arrival}.${p.io?1:0}`).join('_')}`;
+
+    return (
+      <>
+        <Stage
+          width={1920}
+          height={1080}
+          duration={duration}
+          background="#ffffff"
+          persistKey={persistKey}
+          loop={true}
+        >
+          <RoundRobinScene
+            timeline={timeline}
+            tweaks={tweaks}
+            procs={config.processes}
+            quantum={config.quantum}
+          />
+        </Stage>
+
+        <button className="panel-btn config" onClick={() => { setConfigOpen(o => !o); setTweaksOpen(false); }}>
+          ⚙ SIMULAÇÃO
+        </button>
+        <button className="panel-btn" onClick={() => { setTweaksOpen(o => !o); setConfigOpen(false); }}>
+          ⚡ TWEAKS
+        </button>
+
+        {tweaksOpen && <TweaksPanel values={tweaks} onChange={handleTweakChange} onClose={() => setTweaksOpen(false)} />}
+        {configOpen && <ConfigPanel config={config} onChange={setConfig} onClose={() => setConfigOpen(false)} />}
+      </>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

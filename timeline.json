@@ -1,0 +1,2087 @@
+[
+  {
+    "cycle": -1,
+    "note": "Todos os processos prontos para iniciar",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "new",
+        "remaining": 8,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "new",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "new",
+        "remaining": 10,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "new",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "new",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 0,
+    "note": "P1 chega → PRONTO | P1 EXECUTANDO | P1 → BLOQUEADO",
+    "ranThisCycle": 1,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 7,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "2": {
+        "state": "new",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "new",
+        "remaining": 10,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "new",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "new",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 1,
+    "note": "P2 chega → PRONTO | P2 EXECUTANDO",
+    "ranThisCycle": 2,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 7,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "2": {
+        "state": "running",
+        "remaining": 4,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "new",
+        "remaining": 10,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "new",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "new",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": {
+      "id": 2
+    }
+  },
+  {
+    "cycle": 2,
+    "note": "",
+    "ranThisCycle": 2,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 7,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "2": {
+        "state": "running",
+        "remaining": 3,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "new",
+        "remaining": 10,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "new",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "new",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": {
+      "id": 2
+    }
+  },
+  {
+    "cycle": 3,
+    "note": "P2 → PRONTO | P1 desbloqueia → PRONTO",
+    "ranThisCycle": 2,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 7,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "ready",
+        "remaining": 2,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "new",
+        "remaining": 10,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "new",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "new",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      1,
+      2
+    ],
+    "running": null
+  },
+  {
+    "cycle": 4,
+    "note": "P3 chega → PRONTO | P1 EXECUTANDO | P1 → BLOQUEADO",
+    "ranThisCycle": 1,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "2": {
+        "state": "ready",
+        "remaining": 2,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 10,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "new",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "new",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      2,
+      3
+    ],
+    "running": null
+  },
+  {
+    "cycle": 5,
+    "note": "P2 EXECUTANDO",
+    "ranThisCycle": 2,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "2": {
+        "state": "running",
+        "remaining": 1,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 10,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "new",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "new",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3
+    ],
+    "running": {
+      "id": 2
+    }
+  },
+  {
+    "cycle": 6,
+    "note": "P4 chega → PRONTO | P2 TERMINADO",
+    "ranThisCycle": 2,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 10,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "ready",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "new",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3,
+      4
+    ],
+    "running": null
+  },
+  {
+    "cycle": 7,
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → PRONTO",
+    "ranThisCycle": 3,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 9,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "4": {
+        "state": "ready",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "new",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      4,
+      1
+    ],
+    "running": null
+  },
+  {
+    "cycle": 8,
+    "note": "P5 chega → PRONTO | P4 EXECUTANDO",
+    "ranThisCycle": 4,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 9,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "4": {
+        "state": "running",
+        "remaining": 3,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "ready",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      1,
+      5
+    ],
+    "running": {
+      "id": 4
+    }
+  },
+  {
+    "cycle": 9,
+    "note": "",
+    "ranThisCycle": 4,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 9,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "4": {
+        "state": "running",
+        "remaining": 2,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "ready",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      1,
+      5
+    ],
+    "running": {
+      "id": 4
+    }
+  },
+  {
+    "cycle": 10,
+    "note": "P4 → PRONTO | P3 desbloqueia → PRONTO",
+    "ranThisCycle": 4,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 9,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "ready",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "ready",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      1,
+      5,
+      3,
+      4
+    ],
+    "running": null
+  },
+  {
+    "cycle": 11,
+    "note": "P1 EXECUTANDO | P1 → BLOQUEADO",
+    "ranThisCycle": 1,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 9,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "ready",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "ready",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      5,
+      3,
+      4
+    ],
+    "running": null
+  },
+  {
+    "cycle": 12,
+    "note": "P5 EXECUTANDO",
+    "ranThisCycle": 5,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 9,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "ready",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "running",
+        "remaining": 5,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3,
+      4
+    ],
+    "running": {
+      "id": 5
+    }
+  },
+  {
+    "cycle": 13,
+    "note": "",
+    "ranThisCycle": 5,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 9,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "ready",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "running",
+        "remaining": 4,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3,
+      4
+    ],
+    "running": {
+      "id": 5
+    }
+  },
+  {
+    "cycle": 14,
+    "note": "P5 → PRONTO | P1 desbloqueia → PRONTO",
+    "ranThisCycle": 5,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 9,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "ready",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "ready",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3,
+      4,
+      1,
+      5
+    ],
+    "running": null
+  },
+  {
+    "cycle": 15,
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO",
+    "ranThisCycle": 3,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 8,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "4": {
+        "state": "ready",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "ready",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      4,
+      1,
+      5
+    ],
+    "running": null
+  },
+  {
+    "cycle": 16,
+    "note": "P4 EXECUTANDO | P4 TERMINADO",
+    "ranThisCycle": 4,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 8,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "ready",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      1,
+      5
+    ],
+    "running": null
+  },
+  {
+    "cycle": 17,
+    "note": "P1 EXECUTANDO | P1 → BLOQUEADO",
+    "ranThisCycle": 1,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 8,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "ready",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      5
+    ],
+    "running": null
+  },
+  {
+    "cycle": 18,
+    "note": "P5 EXECUTANDO | P3 desbloqueia → PRONTO",
+    "ranThisCycle": 5,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 8,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "running",
+        "remaining": 2,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3
+    ],
+    "running": {
+      "id": 5
+    }
+  },
+  {
+    "cycle": 19,
+    "note": "",
+    "ranThisCycle": 5,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 8,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "running",
+        "remaining": 1,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3
+    ],
+    "running": {
+      "id": 5
+    }
+  },
+  {
+    "cycle": 20,
+    "note": "P5 TERMINADO | P1 desbloqueia → PRONTO",
+    "ranThisCycle": 5,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 8,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3,
+      1
+    ],
+    "running": null
+  },
+  {
+    "cycle": 21,
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO",
+    "ranThisCycle": 3,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 7,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      1
+    ],
+    "running": null
+  },
+  {
+    "cycle": 22,
+    "note": "P1 EXECUTANDO | P1 → BLOQUEADO",
+    "ranThisCycle": 1,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 7,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 23,
+    "note": "",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 7,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 24,
+    "note": "P3 desbloqueia → PRONTO",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 7,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3
+    ],
+    "running": null
+  },
+  {
+    "cycle": 25,
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → PRONTO",
+    "ranThisCycle": 3,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      1
+    ],
+    "running": null
+  },
+  {
+    "cycle": 26,
+    "note": "P1 EXECUTANDO | P1 → BLOQUEADO",
+    "ranThisCycle": 1,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 2,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 27,
+    "note": "",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 2,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 28,
+    "note": "P3 desbloqueia → PRONTO",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 2,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 6,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3
+    ],
+    "running": null
+  },
+  {
+    "cycle": 29,
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → PRONTO",
+    "ranThisCycle": 3,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 2,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      1
+    ],
+    "running": null
+  },
+  {
+    "cycle": 30,
+    "note": "P1 EXECUTANDO | P1 → BLOQUEADO",
+    "ranThisCycle": 1,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 31,
+    "note": "",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 32,
+    "note": "P3 desbloqueia → PRONTO",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "blocked",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 5,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3
+    ],
+    "running": null
+  },
+  {
+    "cycle": 33,
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → PRONTO",
+    "ranThisCycle": 3,
+    "procs": {
+      "1": {
+        "state": "ready",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      1
+    ],
+    "running": null
+  },
+  {
+    "cycle": 34,
+    "note": "P1 EXECUTANDO | P1 TERMINADO",
+    "ranThisCycle": 1,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 35,
+    "note": "",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 36,
+    "note": "P3 desbloqueia → PRONTO",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 4,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3
+    ],
+    "running": null
+  },
+  {
+    "cycle": 37,
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO",
+    "ranThisCycle": 3,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 38,
+    "note": "",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 39,
+    "note": "",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 40,
+    "note": "P3 desbloqueia → PRONTO",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 3,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3
+    ],
+    "running": null
+  },
+  {
+    "cycle": 41,
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO",
+    "ranThisCycle": 3,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 2,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 42,
+    "note": "",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 2,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 43,
+    "note": "",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 2,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 44,
+    "note": "P3 desbloqueia → PRONTO",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 2,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3
+    ],
+    "running": null
+  },
+  {
+    "cycle": 45,
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO",
+    "ranThisCycle": 3,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 3
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 46,
+    "note": "",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 2
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 47,
+    "note": "",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "blocked",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 1
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  },
+  {
+    "cycle": 48,
+    "note": "P3 desbloqueia → PRONTO",
+    "ranThisCycle": null,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "ready",
+        "remaining": 1,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [
+      3
+    ],
+    "running": null
+  },
+  {
+    "cycle": 49,
+    "note": "P3 EXECUTANDO | P3 TERMINADO",
+    "ranThisCycle": 3,
+    "procs": {
+      "1": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "2": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 1,
+        "blockLeft": 0
+      },
+      "3": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      },
+      "4": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 2,
+        "blockLeft": 0
+      },
+      "5": {
+        "state": "terminated",
+        "remaining": 0,
+        "quantumLeft": 0,
+        "blockLeft": 0
+      }
+    },
+    "readyQueue": [],
+    "running": null
+  }
+]

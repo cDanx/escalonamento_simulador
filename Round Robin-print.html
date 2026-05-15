@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Round Robin — Escalonamento (PDF)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; font-family: 'Inter', system-ui, sans-serif; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { size: A4 landscape; margin: 1cm; }
+  @media print {
+    .page { page-break-after: always; }
+    .page:last-child { page-break-after: auto; }
+  }
+  .page { width: 100%; padding: 24px 28px; break-inside: avoid; }
+  h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 4px; }
+  h2 { font-size: 18px; font-weight: 700; margin: 20px 0 10px; letter-spacing: -0.01em; }
+  .subtitle { color: #666; font-size: 14px; margin-bottom: 16px; }
+
+  /* Estados (modais) */
+  .states { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 18px; }
+  .state { border: 2px solid; border-radius: 12px; padding: 12px 14px; }
+  .state .label { font-size: 10px; letter-spacing: 0.18em; font-weight: 700; }
+  .state .title { font-size: 18px; font-weight: 800; margin-top: 2px; line-height: 1; }
+  .state .sub { font-size: 12px; margin-top: 4px; font-weight: 500; }
+  .state .hint { font-size: 11px; color: #555; margin-top: 6px; line-height: 1.35; font-style: italic; }
+  .s-new { background: #FAFAFA; border-color: #D4D4D4; }
+  .s-new .label, .s-new .sub { color: #737373; }
+  .s-ready { background: #FEF9E7; border-color: #F5D76E; }
+  .s-ready .label, .s-ready .sub { color: #B7950B; }
+  .s-run { background: #E8F5E9; border-color: #66BB6A; }
+  .s-run .label, .s-run .sub { color: #2E7D32; }
+  .s-blk { background: #FDECEC; border-color: #EF9A9A; }
+  .s-blk .label, .s-blk .sub { color: #C62828; }
+  .s-term { background: #ECEFF1; border-color: #90A4AE; }
+  .s-term .label, .s-term .sub { color: #455A64; }
+
+  /* Processos */
+  .procs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .proc { border: 2px solid; border-radius: 10px; padding: 10px 12px; background: #fff; display: flex; flex-direction: column; gap: 6px; }
+  .proc .hdr { display: flex; align-items: center; gap: 8px; }
+  .proc .badge { width: 32px; height: 32px; border-radius: 8px; color: #fff; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .proc .nm { font-size: 13px; font-weight: 700; }
+  .proc .mt { font-size: 11px; color: #666; }
+  .proc .row { display: flex; justify-content: space-between; font-size: 11px; color: #333; }
+  .proc .row .k { color: #777; }
+  .proc .row .v { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+  /* Gantt */
+  .gantt { display: grid; grid-template-columns: 60px 1fr; gap: 4px 8px; margin-top: 8px; align-items: center; }
+  .gantt .rowLabel { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; }
+  .gantt .bars { display: grid; grid-template-columns: repeat(35, 1fr); gap: 1px; }
+  .gantt .cell { height: 22px; border-radius: 2px; background: #F0F0F0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; }
+  .axis { display: grid; grid-template-columns: 60px 1fr; gap: 4px 8px; margin-top: 4px; }
+  .axis .ticks { display: grid; grid-template-columns: repeat(35, 1fr); gap: 1px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #666; text-align: center; }
+  .legend { margin-top: 14px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 11px; color: #444; }
+  .legend .item { display: flex; align-items: center; gap: 6px; }
+  .legend .sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+
+  /* Curiosidades */
+  .facts { margin-top: 16px; }
+  .fact { background: #1a1a1a; color: #fafafa; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; font-size: 12px; line-height: 1.45; break-inside: avoid; }
+  .fact .num { display: inline-block; background: #FCD34D; color: #111; border-radius: 4px; padding: 1px 6px; font-weight: 700; margin-right: 8px; font-size: 10px; }
+
+  .meta { font-size: 11px; color: #666; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <h1>Escalonamento Round Robin <span style="color:#737373;font-weight:500;font-size:18px">· quantum = 3 ciclos</span></h1>
+  <div class="subtitle">Simulação com 5 processos chegando a cada 2 ciclos · P1 e P3 realizam operações de E/S (bloqueiam 3 ciclos após o quantum)</div>
+
+  <h2>Os cinco estados do processo</h2>
+  <div class="states">
+    <div class="state s-new"><div class="label">ESTADO 1</div><div class="title">NOVO</div><div class="sub">Recém-criado</div><div class="hint">Processo acaba de chegar ao sistema</div></div>
+    <div class="state s-ready"><div class="label">ESTADO 2</div><div class="title">PRONTO</div><div class="sub">Aguardando CPU</div><div class="hint">Fila FIFO — próximo a executar</div></div>
+    <div class="state s-run"><div class="label">ESTADO 3</div><div class="title">EXECUTANDO</div><div class="sub">Na CPU (quantum=3)</div><div class="hint">Possui a CPU por até 3 ciclos</div></div>
+    <div class="state s-blk"><div class="label">ESTADO 4</div><div class="title">BLOQUEADO</div><div class="sub">Esperando E/S</div><div class="hint">Processo de E/S espera 3 ciclos</div></div>
+    <div class="state s-term"><div class="label">ESTADO 5</div><div class="title">TERMINADO</div><div class="sub">Finalizado</div><div class="hint">Completou toda sua execução</div></div>
+  </div>
+
+  <h2>Os 5 processos deste exemplo</h2>
+  <div class="procs">
+    <div class="proc" style="border-color:#E8794A"><div class="hdr"><div class="badge" style="background:#E8794A">P1</div><div><div class="nm">Processo 1</div><div class="mt">E/S · 8 ciclos</div></div></div><div class="row"><span class="k">Chegada</span><span class="v">c0</span></div><div class="row"><span class="k">Tipo</span><span class="v">E/S</span></div><div class="row"><span class="k">Bloqueio</span><span class="v">3c</span></div></div>
+    <div class="proc" style="border-color:#4A7FE8"><div class="hdr"><div class="badge" style="background:#4A7FE8">P2</div><div><div class="nm">Processo 2</div><div class="mt">CPU · 5 ciclos</div></div></div><div class="row"><span class="k">Chegada</span><span class="v">c2</span></div><div class="row"><span class="k">Tipo</span><span class="v">CPU</span></div><div class="row"><span class="k">Bloqueio</span><span class="v">—</span></div></div>
+    <div class="proc" style="border-color:#47A96A"><div class="hdr"><div class="badge" style="background:#47A96A">P3</div><div><div class="nm">Processo 3</div><div class="mt">E/S · 10 ciclos</div></div></div><div class="row"><span class="k">Chegada</span><span class="v">c4</span></div><div class="row"><span class="k">Tipo</span><span class="v">E/S</span></div><div class="row"><span class="k">Bloqueio</span><span class="v">3c</span></div></div>
+    <div class="proc" style="border-color:#B85AC4"><div class="hdr"><div class="badge" style="background:#B85AC4">P4</div><div><div class="nm">Processo 4</div><div class="mt">CPU · 4 ciclos</div></div></div><div class="row"><span class="k">Chegada</span><span class="v">c6</span></div><div class="row"><span class="k">Tipo</span><span class="v">CPU</span></div><div class="row"><span class="k">Bloqueio</span><span class="v">—</span></div></div>
+    <div class="proc" style="border-color:#D4A72C"><div class="hdr"><div class="badge" style="background:#D4A72C">P5</div><div><div class="nm">Processo 5</div><div class="mt">CPU · 6 ciclos</div></div></div><div class="row"><span class="k">Chegada</span><span class="v">c8</span></div><div class="row"><span class="k">Tipo</span><span class="v">CPU</span></div><div class="row"><span class="k">Bloqueio</span><span class="v">—</span></div></div>
+  </div>
+</div>
+
+<div class="page">
+  <h1>Diagrama de Gantt — execução ciclo a ciclo</h1>
+  <div class="subtitle">Cada barra mostra onde o processo estava em cada ciclo. R = Executando, P = Pronto (fila), B = Bloqueado (E/S), ✓ = Terminado.</div>
+
+  <div class="axis"><div></div><div class="ticks" id="ticks"></div></div>
+  <div class="gantt" id="gantt"></div>
+
+  <div class="legend">
+    <div class="item"><span class="sw" style="background:#66BB6A"></span>Executando (R)</div>
+    <div class="item"><span class="sw" style="background:#F5D76E"></span>Pronto (P)</div>
+    <div class="item"><span class="sw" style="background:#EF9A9A"></span>Bloqueado (B)</div>
+    <div class="item"><span class="sw" style="background:#D4D4D4"></span>Novo (N)</div>
+    <div class="item"><span class="sw" style="background:#90A4AE"></span>Terminado (✓)</div>
+  </div>
+
+  <h2>Curiosidades do Round Robin</h2>
+  <div class="facts">
+    <div class="fact"><span class="num">1</span>No Round Robin, cada processo recebe um "quantum" — uma fatia fixa de tempo na CPU. Aqui, o quantum é de 3 ciclos.</div>
+    <div class="fact"><span class="num">2</span>Ao chegar, o processo passa por NOVO e vai para o fim da fila de PRONTOS. É uma fila FIFO: primeiro a chegar, primeiro a sair.</div>
+    <div class="fact"><span class="num">3</span>O processo no início da fila recebe a CPU e vira EXECUTANDO. Ele pode rodar por até 3 ciclos antes de ser preemptado.</div>
+    <div class="fact"><span class="num">4</span>Quando o quantum expira, se ainda tem trabalho, o processo volta para o FIM da fila de prontos — nunca para o início.</div>
+    <div class="fact"><span class="num">5</span>P1 e P3 são processos de E/S: ao terminar seu quantum, vão para BLOQUEADO por 3 ciclos (tempo de leitura/escrita no dispositivo).</div>
+    <div class="fact"><span class="num">6</span>Enquanto P1 ou P3 estão bloqueados, a CPU não fica ociosa — outros processos continuam sendo escalonados normalmente.</div>
+    <div class="fact"><span class="num">7</span>Quando a E/S termina, o processo volta para o FIM da fila de prontos — não reassume imediatamente a CPU.</div>
+    <div class="fact"><span class="num">8</span>O Round Robin é justo: todos recebem fatias iguais. A desvantagem é o overhead das trocas de contexto frequentes.</div>
+  </div>
+</div>
+
+<script>
+  // Gera o Gantt a partir da timeline.json
+  (async () => {
+    const res = await fetch('timeline.json');
+    const timeline = await res.json();
+    // Filtra apenas snapshots "reais" (cycle >= 0), e consolida por cycle (primeiro snapshot de cada cycle)
+    const byCycle = {};
+    for (const e of timeline) {
+      if (e.cycle < 0) continue;
+      // No caso de cycle duplicado (sintético), preferimos o que tem 'running'
+      if (!byCycle[e.cycle] || e.running) byCycle[e.cycle] = e;
+    }
+    const cycles = Object.keys(byCycle).map(Number).sort((a,b)=>a-b);
+    const numCycles = cycles.length;
+
+    const PROCS = [
+      { id: 1, color: '#E8794A' },
+      { id: 2, color: '#4A7FE8' },
+      { id: 3, color: '#47A96A' },
+      { id: 4, color: '#B85AC4' },
+      { id: 5, color: '#D4A72C' },
+    ];
+
+    const colorFor = (state, procColor) => {
+      if (state === 'running')    return { bg: procColor, fg: '#fff', letter: 'R' };
+      if (state === 'ready')      return { bg: '#F5D76E', fg: '#7A5500', letter: 'P' };
+      if (state === 'blocked')    return { bg: '#EF9A9A', fg: '#7A1A1A', letter: 'B' };
+      if (state === 'new')        return { bg: '#E5E5E5', fg: '#555', letter: 'N' };
+      if (state === 'terminated') return { bg: '#90A4AE', fg: '#fff', letter: '✓' };
+      return { bg: '#fff', fg: '#000', letter: '' };
+    };
+
+    const ticksEl = document.getElementById('ticks');
+    ticksEl.style.gridTemplateColumns = `repeat(${numCycles}, 1fr)`;
+    for (const c of cycles) {
+      const d = document.createElement('div');
+      d.textContent = c;
+      ticksEl.appendChild(d);
+    }
+
+    const ganttEl = document.getElementById('gantt');
+    ganttEl.innerHTML = '';
+    for (const p of PROCS) {
+      const label = document.createElement('div');
+      label.className = 'rowLabel';
+      label.textContent = 'P' + p.id;
+      label.style.color = p.color;
+      ganttEl.appendChild(label);
+
+      const row = document.createElement('div');
+      row.className = 'bars';
+      row.style.gridTemplateColumns = `repeat(${numCycles}, 1fr)`;
+      for (const c of cycles) {
+        const snap = byCycle[c];
+        const st = snap.procs[p.id].state;
+        const col = colorFor(st, p.color);
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.style.background = col.bg;
+        cell.style.color = col.fg;
+        cell.textContent = col.letter;
+        row.appendChild(cell);
+      }
+      ganttEl.appendChild(row);
+    }
+
+    // Auto-print após fontes + layout
+    try { await document.fonts.ready; } catch(e){}
+    setTimeout(() => { window.print(); }, 500);
+  })();
+</script>
+
+</body>
+</html>
