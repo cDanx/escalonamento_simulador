@@ -62,4 +62,4 @@ Focado na aplicação em ambiente de simulação.
 
 1. Clone o repositório:
 ```bash
-   git clone [URL_DO_REPOSITORIO]
+   git clone https://github.com/cDanx/escalonamento_simulador
