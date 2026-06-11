@@ -23,7 +23,7 @@ Estudantes de graduação em cursos da área de Computação, cursando a discipl
  
 ### Requisito 02 — Memorizar
  
-**Objetivo:** O aluno deve ser capaz de listar e definir os principais algoritmos de escalonamento: *FCFS (First Come, First Served)*, *Round Robin* e *Prioridade*.
+**Objetivo:** O aluno deve ser capaz de listar e definir os principais algoritmos de escalonamento: *First In First Out* (FIFO), *Shortest Job First* (SJF), *Shortest Remaining Time First* (SRTF) e *Round Robin*.
  
 ### Requisito 03 — Compreender
  
@@ -44,7 +44,7 @@ O conteúdo do sistema gira em torno de três eixos principais:
 
 - **Processos:** diferença entre processos *CPU Bound* e *I/O Bound*
 - **Estados e Ciclo de Vida:** transições entre *New*, *Ready*, *Running*, *Blocked* e *Terminated*, desencadeadas por chamadas de sistema, preempção ou operações de I/O
-- **Algoritmos de Escalonamento:** funcionamento do *FCFS*, *Round Robin* (com quantum) e *Prioridade*
+- **Algoritmos de Escalonamento:** funcionamento do *First In First Out* (FIFO), *Shortest Job First* (SJF), *Shortest Remaining Time First* (SRTF) e *Round Robin*
 
 ---
 
@@ -59,7 +59,7 @@ A navegação é dividida em dois módulos. Cada tópico do módulo conceitual s
 
 - **Processos:** conteúdo sobre tipos de processo + quiz de contextualização
 - **Estados:** explicação de cada estado e suas transições + quiz de fixação
-- **Algoritmos:** funcionamento de cada algoritmo + avaliação de memorização
+- **Algoritmos:** funcionamento de cada algoritmo + quiz de memorização
 
 **Módulo Prático** — aplicação em simulação
 
