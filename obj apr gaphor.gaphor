@@ -311,6 +311,14 @@ action[name="First in first out"] {
 action[name="Round robin"] {
   background-color: rgba(28, 113, 216, 1.0);
 }
+
+state[name="Explanatório: Conteúdo didático textual sobre principais conceitos de processos e seu comportamento"] {
+  background-color: rgba(243, 82, 192, 1.0);
+}
+
+action[name="Processo"] {
+  background-color: rgba(243, 82, 192, 1.0);
+}
 </val>
 </styleSheet>
 </Core:StyleSheet>
@@ -659,6 +667,7 @@ action[name="Round robin"] {
 <ref refid="e3312756-6522-11f1-b979-a8595fee03d7"/>
 <ref refid="29b14fcd-6523-11f1-bbd1-a8595fee03d7"/>
 <ref refid="2a3253d9-6523-11f1-8b77-a8595fee03d7"/>
+<ref refid="78d30e90-69db-11f1-b0ae-a8595fee03d7"/>
 <ref refid="e2a3dbfd-57ca-11f1-9ab4-e20af6581317"/>
 <ref refid="377ea3b8-57cb-11f1-8dc8-e20af6581317"/>
 <ref refid="6135e9da-57cb-11f1-9555-e20af6581317"/>
@@ -679,7 +688,7 @@ action[name="Round robin"] {
 <ref refid="99a8860e-5313-11f1-9df2-a8595fee03da"/>
 </container>
 <name>
-<val>JOGO</val>
+<val>Escalonador de Processos</val>
 </name>
 <presentation>
 <reflist>
@@ -1493,6 +1502,7 @@ action[name="Round robin"] {
 <ref refid="e330aca1-6522-11f1-b6d3-a8595fee03d7"/>
 <ref refid="29b0d380-6523-11f1-bda1-a8595fee03d7"/>
 <ref refid="2a31e974-6523-11f1-a451-a8595fee03d7"/>
+<ref refid="78d285f7-69db-11f1-a4cd-a8595fee03d7"/>
 </reflist>
 </node>
 </UML:Activity>
@@ -1818,7 +1828,7 @@ action[name="Round robin"] {
 <ref refid="b512d35c-6520-11f1-8f00-a8595fee03d7"/>
 </container>
 <name>
-<val>Explanatório: Conteúdo didático textual sobre principais conceitos de processos</val>
+<val>Explanatório: Conteúdo didático textual sobre principais conceitos de processos e seu comportamento</val>
 </name>
 <presentation>
 <reflist>
@@ -1828,7 +1838,7 @@ action[name="Round robin"] {
 </UML:State>
 <UML:StateItem id="cb3bbed1-57ca-11f1-8304-e20af6581317">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 28.318063779360337, -81.48095676101431)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 47.81806377936027, -77.00000000000009)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -1837,7 +1847,7 @@ action[name="Round robin"] {
 <val>161.0</val>
 </width>
 <height>
-<val>101.0</val>
+<val>106.0</val>
 </height>
 <diagram>
 <ref refid="94c9c31f-5313-11f1-ac0b-a8595fee03da"/>
@@ -1863,7 +1873,7 @@ action[name="Round robin"] {
 <val>(1.0, 0.0, 0.0, 1.0, 370.0, 197.00000000000003)</val>
 </matrix>
 <points>
-<val>[(41.25741837248037, 132.72638568113462), (103.0, 111.95277136226923)]</val>
+<val>[(63.45084267073105, 134.7425728308427), (103.0, 111.95277136226923)]</val>
 </points>
 <head-connection>
 <ref refid="c765312d-643f-11f1-85dd-a8595fee03da"/>
@@ -1924,7 +1934,7 @@ action[name="Round robin"] {
 <val>(1.0, 0.0, 0.0, 1.0, 219.0, 172.93730973570842)</val>
 </matrix>
 <points>
-<val>[(8.0, -1.0), (8.000000000000028, 35.01546162656081)]</val>
+<val>[(8.0, -1.0), (13.141735190281622, 39.41968821594679)]</val>
 </points>
 <head-connection>
 <ref refid="34f59b6a-57cb-11f1-8dd2-e20af6581317"/>
@@ -1954,11 +1964,6 @@ action[name="Round robin"] {
 <container>
 <ref refid="d68fd3a7-6520-11f1-9bf0-a8595fee03d7"/>
 </container>
-<incoming>
-<reflist>
-<ref refid="f816a53e-57cb-11f1-a322-e20af6581317"/>
-</reflist>
-</incoming>
 <name>
 <val>Explanatório: Conteúdo didático textual sobre cada estado e as transições entre eles</val>
 </name>
@@ -2078,7 +2083,7 @@ action[name="Round robin"] {
 </container>
 <outgoing>
 <reflist>
-<ref refid="f816a53e-57cb-11f1-a322-e20af6581317"/>
+<ref refid="a8dcbc68-65f8-11f1-a93a-a8595fee03d7"/>
 </reflist>
 </outgoing>
 <presentation>
@@ -2089,7 +2094,7 @@ action[name="Round robin"] {
 </UML:Pseudostate>
 <UML:PseudostateItem id="f4eac79b-57cb-11f1-b081-e20af6581317">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, -80.0, 42.71092405457381)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 311.3371170404279, 67.6686483556216)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -2121,45 +2126,21 @@ action[name="Round robin"] {
 <val>False</val>
 </orthogonal>
 <subject>
-<ref refid="f816a53e-57cb-11f1-a322-e20af6581317"/>
+<ref refid="a8dcbc68-65f8-11f1-a93a-a8595fee03d7"/>
 </subject>
 <matrix>
 <val>(1.0, 0.0, 0.0, 1.0, 741.0, 159.93730973570842)</val>
 </matrix>
 <points>
-<val>[(-17.0, 2.0), (34.0, 80.15063783058335)]</val>
+<val>[(374.337117040428, 26.957724301047847), (255.5, 48.015461626560864)]</val>
 </points>
 <head-connection>
 <ref refid="f4eac79b-57cb-11f1-b081-e20af6581317"/>
 </head-connection>
 <tail-connection>
-<ref refid="80ec7801-57cb-11f1-80fc-e20af6581317"/>
+<ref refid="dc1506f5-643f-11f1-8c27-a8595fee03da"/>
 </tail-connection>
 </UML:TransitionItem>
-<UML:Transition id="f816a53e-57cb-11f1-a322-e20af6581317">
-<container>
-<ref refid="80eea0f4-57cb-11f1-9895-e20af6581317"/>
-</container>
-<guard>
-<ref refid="f81a8fba-57cb-11f1-8273-e20af6581317"/>
-</guard>
-<presentation>
-<reflist>
-<ref refid="f70cf281-57cb-11f1-a46a-e20af6581317"/>
-</reflist>
-</presentation>
-<source>
-<ref refid="f4ea89bb-57cb-11f1-9d1c-e20af6581317"/>
-</source>
-<target>
-<ref refid="80ec3480-57cb-11f1-bc68-e20af6581317"/>
-</target>
-</UML:Transition>
-<UML:Constraint id="f81a8fba-57cb-11f1-8273-e20af6581317">
-<transition>
-<ref refid="f816a53e-57cb-11f1-a322-e20af6581317"/>
-</transition>
-</UML:Constraint>
 <UML:State id="f7afc63a-57cc-11f1-a4ec-e20af6581317">
 <container>
 <ref refid="88af6060-6521-11f1-9854-a8595fee03d7"/>
@@ -2696,7 +2677,7 @@ action[name="Round robin"] {
 </UML:Action>
 <UML:ActionItem id="2d948fac-643f-11f1-8b34-a8595fee03da">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 200.5, 390.2263856811346)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 233.45084267073105, 402.5380864779713)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -2729,7 +2710,7 @@ action[name="Round robin"] {
 </UML:Action>
 <UML:ActionItem id="b252c33d-643f-11f1-848d-a8595fee03da">
 <matrix>
-<val>(1.0, 0.0, 0.0, 1.0, 302.43935459312013, 390.2263856811346)</val>
+<val>(1.0, 0.0, 0.0, 1.0, 333.4508426707311, 380.2263856811347)</val>
 </matrix>
 <top-left>
 <val>(0.0, 0.0)</val>
@@ -2775,13 +2756,13 @@ action[name="Round robin"] {
 <val>(1.0, 0.0, 0.0, 1.0, 33.37129081375983, 242.0)</val>
 </matrix>
 <top-left>
-<val>(-22.181936220639642, -143.27361431886538)</val>
+<val>(-22.181936220639642, -138.8693877294794)</val>
 </top-left>
 <width>
-<val>239.8180637793602</val>
+<val>262.0114880776109</val>
 </width>
 <height>
-<val>224.5853151157021</val>
+<val>220.1810885263161</val>
 </height>
 <children>
 <reflist>
@@ -2802,6 +2783,11 @@ action[name="Round robin"] {
 <container>
 <ref refid="80eea0f4-57cb-11f1-9895-e20af6581317"/>
 </container>
+<incoming>
+<reflist>
+<ref refid="a8dcbc68-65f8-11f1-a93a-a8595fee03d7"/>
+</reflist>
+</incoming>
 <name>
 <val>Estados</val>
 </name>
@@ -3309,7 +3295,7 @@ action[name="Round robin"] {
 </reflist>
 </incoming>
 <name>
-<val>New State</val>
+<val>Escalonador</val>
 </name>
 <outgoing>
 <reflist>
@@ -3487,7 +3473,7 @@ action[name="Round robin"] {
 <ref refid="4064e870-53c5-11f1-a8fe-a8595fee03da"/>
 </activity>
 <name>
-<val>Processo</val>
+<val>Processador</val>
 </name>
 <presentation>
 <reflist>
@@ -3513,6 +3499,63 @@ action[name="Round robin"] {
 </diagram>
 <subject>
 <ref refid="2a31e974-6523-11f1-a451-a8595fee03d7"/>
+</subject>
+</UML:ActionItem>
+<UML:Transition id="a8dcbc68-65f8-11f1-a93a-a8595fee03d7">
+<container>
+<ref refid="80eea0f4-57cb-11f1-9895-e20af6581317"/>
+</container>
+<guard>
+<ref refid="a8dd0a98-65f8-11f1-8763-a8595fee03d7"/>
+</guard>
+<presentation>
+<reflist>
+<ref refid="f70cf281-57cb-11f1-a46a-e20af6581317"/>
+</reflist>
+</presentation>
+<source>
+<ref refid="f4ea89bb-57cb-11f1-9d1c-e20af6581317"/>
+</source>
+<target>
+<ref refid="dc14ad62-643f-11f1-86cf-a8595fee03da"/>
+</target>
+</UML:Transition>
+<UML:Constraint id="a8dd0a98-65f8-11f1-8763-a8595fee03d7">
+<transition>
+<ref refid="a8dcbc68-65f8-11f1-a93a-a8595fee03d7"/>
+</transition>
+</UML:Constraint>
+<UML:Action id="78d285f7-69db-11f1-a4cd-a8595fee03d7">
+<activity>
+<ref refid="4064e870-53c5-11f1-a8fe-a8595fee03da"/>
+</activity>
+<name>
+<val>Processo</val>
+</name>
+<presentation>
+<reflist>
+<ref refid="78d30e90-69db-11f1-b0ae-a8595fee03d7"/>
+</reflist>
+</presentation>
+</UML:Action>
+<UML:ActionItem id="78d30e90-69db-11f1-b0ae-a8595fee03d7">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 172.49999999999997, 361.2263856811346)</val>
+</matrix>
+<top-left>
+<val>(0.0, 14.0)</val>
+</top-left>
+<width>
+<val>78.0</val>
+</width>
+<height>
+<val>30.0</val>
+</height>
+<diagram>
+<ref refid="94c9c31f-5313-11f1-ac0b-a8595fee03da"/>
+</diagram>
+<subject>
+<ref refid="78d285f7-69db-11f1-a4cd-a8595fee03d7"/>
 </subject>
 </UML:ActionItem>
 </model>
