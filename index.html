@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Simulador de Escalonamento</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    min-height: 100%;
+    background: #f4f4f5;
+    color: #18181b;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .header-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: #a1a1aa;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .header h1 {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: #18181b;
+    margin-bottom: 16px;
+  }
+  .header p {
+    font-size: 18px;
+    color: #71717a;
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 28px; }
+  }
+  .card {
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: border-color 150ms, background 150ms, transform 150ms, box-shadow 150ms;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .card:hover {
+    border-color: var(--accent);
+    background: #fafafa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .card-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+    letter-spacing: 0;
+  }
+  .card-name {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #18181b;
+  }
+  .card-fullname {
+    font-size: 13px;
+    font-weight: 500;
+    color: #71717a;
+    margin-top: 2px;
+  }
+  .card-desc {
+    font-size: 14px;
+    color: #71717a;
+    line-height: 1.55;
+    flex: 1;
+  }
+  .card-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .card-rule {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: #71717a;
+    line-height: 1.4;
+  }
+  .card-rule::before {
+    content: '→';
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .card-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 150ms;
+    margin-top: 4px;
+    align-self: flex-start;
+  }
+  .card-btn:hover { opacity: 0.85; }
+  .divider {
+    border: none;
+    border-top: 1px solid #e4e4e7;
+    margin: 4px 0;
+  }
+  .footer-note {
+    text-align: center;
+    font-size: 13px;
+    color: #a1a1aa;
+    margin-top: 48px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div style="margin-bottom: 28px; background: #fff; border: 1px solid #e4e4e7; border-radius: 14px; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+    <div>
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #a1a1aa; margin-bottom: 4px;">Novo por aqui?</div>
+      <p style="font-size: 14px; color: #52525b; line-height: 1.5;">Estude os conceitos antes de praticar — processos, estados e algoritmos explicados com quizzes.</p>
+    </div>
+    <a href="learn.html" style="display: inline-flex; align-items: center; gap: 6px; background: #18181b; color: #fff; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 8px; text-decoration: none; white-space: nowrap; flex-shrink: 0;">
+      📚 Ver conteúdo teórico →
+    </a>
+  </div>
+
+  <div class="header">
+    <div class="header-eyebrow">Sistemas Operacionais</div>
+    <h1>Simulador de Escalonamento</h1>
+    <p>Escolha um algoritmo, monte o diagrama de Gantt e veja se você acertou a ordem de execução.</p>
+  </div>
+
+  <div class="grid">
+    <!-- FIFO -->
+    <a class="card" href="challenge.html?algo=fifo" style="--accent: #4A7FE8">
+      <div class="card-top">
+        <div class="card-badge">FIFO</div>
+        <div>
+          <div class="card-name">FIFO</div>
+          <div class="card-fullname">First In, First Out</div>
+        </div>
+      </div>
+      <hr class="divider">
+      <p class="card-desc">
+        O processo que chegou primeiro é o primeiro a usar a CPU.
+        Sem preempção — cada processo roda até terminar completamente.
+      </p>
+      <div class="card-rules">
+        <div class="card-rule">Execute quem chegou primeiro</div>
+        <div class="card-rule">Sem interrupção: roda até terminar</div>
+        <div class="card-rule">Empate de chegada: menor ID primeiro</div>
+      </div>
+      <span class="card-btn">Praticar →</span>
+    </a>
+
+    <!-- SJF -->
+    <a class="card" href="challenge.html?algo=sjf" style="--accent: #47A96A">
+      <div class="card-top">
+        <div class="card-badge">SJF</div>
+        <div>
+          <div class="card-name">SJF</div>
+          <div class="card-fullname">Shortest Job First</div>
+        </div>
+      </div>
+      <hr class="divider">
+      <p class="card-desc">
+        Quando a CPU fica livre, escolhe o processo com o menor burst total
+        entre os que já chegaram. Sem preempção.
+      </p>
+      <div class="card-rules">
+        <div class="card-rule">CPU livre → escolhe menor burst</div>
+        <div class="card-rule">Sem interrupção: roda até terminar</div>
+        <div class="card-rule">Empate de burst: menor ID primeiro</div>
+      </div>
+      <span class="card-btn">Praticar →</span>
+    </a>
+
+    <!-- SRTF -->
+    <a class="card" href="challenge.html?algo=srtf" style="--accent: #E8794A">
+      <div class="card-top">
+        <div class="card-badge">SRTF</div>
+        <div>
+          <div class="card-name">SRTF</div>
+          <div class="card-fullname">Shortest Remaining Time First</div>
+        </div>
+      </div>
+      <hr class="divider">
+      <p class="card-desc">
+        A cada ciclo, roda o processo com o menor <em style="color:#E8794A">tempo restante</em>.
+        Um processo pode ser interrompido se um novo chegar com burst menor.
+      </p>
+      <div class="card-rules">
+        <div class="card-rule">Sempre executa o menor tempo restante</div>
+        <div class="card-rule">Preemptivo: novo processo pode interromper</div>
+        <div class="card-rule">Empate: menor ID primeiro</div>
+      </div>
+      <span class="card-btn">Praticar →</span>
+    </a>
+
+    <!-- Round Robin -->
+    <a class="card" href="challenge.html?algo=rr" style="--accent: #B85AC4">
+      <div class="card-top">
+        <div class="card-badge">RR</div>
+        <div>
+          <div class="card-name">Round Robin</div>
+          <div class="card-fullname">Quantum = 3 ciclos</div>
+        </div>
+      </div>
+      <hr class="divider">
+      <p class="card-desc">
+        Cada processo recebe no máximo 3 ciclos (quantum) por vez. Depois volta
+        para o fim da fila. Justo e preemptivo por tempo.
+      </p>
+      <div class="card-rules">
+        <div class="card-rule">Cada processo roda até 3 ciclos por vez</div>
+        <div class="card-rule">Ao esgotar quantum, volta para o fim da fila</div>
+        <div class="card-rule">Fila FIFO: primeiro a chegar, primeiro a sair</div>
+      </div>
+      <span class="card-btn">Praticar →</span>
+    </a>
+  </div>
+
+  <p class="footer-note">Após montar o Gantt, você vê onde errou e a solução correta animada.</p>
+</div>
+<script>
+(function () {
+  var completed = localStorage.getItem('learn:completed') === 'true';
+  if (completed) return;
+
+  // Atualiza o banner para mensagem de bloqueio
+  var banner = document.querySelector('[href="learn.html"]');
+  if (banner) {
+    banner.closest('div').querySelector('p').textContent =
+      'Para desbloquear os simuladores, complete primeiro a trilha de conteúdo teórico.';
+    banner.textContent = '📚 Iniciar trilha →';
+    banner.style.background = '#e91e8c';
+  }
+
+  // Bloqueia cada card de algoritmo
+  document.querySelectorAll('a.card').forEach(function (card) {
+    // Remove navegação
+    card.removeAttribute('href');
+    card.style.pointerEvents = 'none';
+    card.style.userSelect = 'none';
+
+    // Overlay de bloqueio
+    var overlay = document.createElement('div');
+    overlay.style.cssText =
+      'position:absolute;inset:0;border-radius:16px;' +
+      'background:rgba(244,244,245,0.82);backdrop-filter:blur(2px);' +
+      'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;';
+
+    var icon = document.createElement('div');
+    icon.style.cssText = 'font-size:28px;line-height:1;';
+    icon.textContent = '🔒';
+
+    var txt = document.createElement('div');
+    txt.style.cssText =
+      'font-size:12px;font-weight:700;color:#52525b;letter-spacing:0.04em;';
+    txt.textContent = 'Complete a trilha para desbloquear';
+
+    overlay.appendChild(icon);
+    overlay.appendChild(txt);
+    card.appendChild(overlay);
+  });
+})();
+</script>
+</body>
+</html>

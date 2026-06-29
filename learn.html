@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Aprender — Escalonamento de Processos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; background: #f4f4f5; color: #18181b; font-family: 'Inter', system-ui, sans-serif; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel">
+
+// ── Utilitários ───────────────────────────────────────────────────────────────
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function loadProgress() {
+  try { const s = localStorage.getItem('learn:progress'); return s ? JSON.parse(s) : null; } catch { return null; }
+}
+function saveProgress(p) {
+  try { localStorage.setItem('learn:progress', JSON.stringify(p)); } catch {}
+}
+
+// ── Tema ──────────────────────────────────────────────────────────────────────
+
+const C = {
+  bg: '#f4f4f5', surface: '#ffffff', border: '#e4e4e7',
+  text: '#18181b', textSub: '#52525b', textMuted: '#a1a1aa',
+};
+
+const STEPS = [
+  'content_processos', 'quiz_processos',
+  'content_estados',   'quiz_estados',
+  'content_algoritmos','quiz_algoritmos',
+  'completed',
+];
+
+const MOD = {
+  processos:  { label: 'Processos',  color: '#e91e8c', num: 1 },
+  estados:    { label: 'Estados',    color: '#f57c00', num: 2 },
+  algoritmos: { label: 'Algoritmos', color: '#1565c0', num: 3 },
+};
+
+// ── Quiz Data ─────────────────────────────────────────────────────────────────
+
+const QUIZZES = {
+  processos: [
+    {
+      q: 'O que melhor define um processo em um sistema operacional?',
+      opts: ['Um arquivo salvo no disco rígido', 'Um programa em execução, com seu contexto e recursos associados', 'Um algoritmo escrito pelo programador', 'Uma instrução isolada executada pelo processador'],
+      ans: 1,
+      fc: 'Exato! Um processo é mais do que o código — é o programa rodando, com tudo que ele precisa para continuar.',
+      fi: 'Um processo é um programa em execução, não apenas o arquivo em disco. Ele carrega contexto, dados e estado.',
+    },
+    {
+      q: 'Qual das alternativas abaixo é um exemplo típico de processo CPU bound?',
+      opts: ['Um programa aguardando o usuário digitar', 'Um navegador carregando uma página web', 'Um software de renderização de vídeo', 'Um sistema de arquivos lendo dados do disco'],
+      ans: 2,
+      fc: 'Correto! Renderização de vídeo exige muito processamento contínuo — praticamente não espera por IO.',
+      fi: 'Processos CPU bound ficam a maior parte do tempo calculando no processador. Renderização de vídeo é o exemplo clássico.',
+    },
+    {
+      q: 'Um processo IO bound se caracteriza por:',
+      opts: ['Usar intensamente o processador por longos períodos', 'Nunca precisar de memória', 'Passar a maior parte do tempo esperando por operações de entrada/saída', 'Executar mais rápido que processos CPU bound'],
+      ans: 2,
+      fc: 'Isso mesmo! Processos IO bound ficam bloqueados esperando dados — do disco, da rede, do usuário.',
+      fi: 'IO bound significa que o gargalo é a entrada/saída, não o processador. O processo passa mais tempo esperando do que calculando.',
+    },
+    {
+      q: 'Um processo é exatamente a mesma coisa que o arquivo executável (.exe) armazenado no disco.',
+      opts: ['Verdadeiro', 'Falso'],
+      ans: 1,
+      fc: 'Correto! O executável é apenas o código em disco. O processo é o programa rodando, com memória alocada, estado de execução e contexto.',
+      fi: 'O arquivo em disco é estático. O processo é dinâmico — existe apenas enquanto o programa está sendo executado.',
+    },
+    {
+      q: 'O contexto de um processo serve para:',
+      opts: ['Guardar o código-fonte do programa', 'Permitir que o sistema operacional pause e retome a execução do processo', 'Aumentar a velocidade de execução do processo', 'Definir qual algoritmo de escalonamento será usado'],
+      ans: 1,
+      fc: 'Perfeito! O contexto é o "estado salvo" do processo — sem ele, o SO não poderia pausar um processo e continuar de onde parou.',
+      fi: 'O contexto guarda as informações necessárias para retomar a execução: em qual instrução parou, quais dados estavam em uso, etc.',
+    },
+    {
+      q: 'Em um computador com vários programas abertos ao mesmo tempo, cada programa corresponde a:',
+      opts: ['Um único processo compartilhado entre todos os programas', 'Um processo próprio, gerenciado pelo sistema operacional', 'Um arquivo temporário criado pelo processador', 'Uma thread do sistema operacional'],
+      ans: 1,
+      fc: 'Exato! Cada programa aberto gera um (ou mais) processos. O SO gerencia todos eles.',
+      fi: 'Cada programa em execução tem seu próprio processo, com contexto e recursos independentes.',
+    },
+    {
+      q: 'Joana percebe que um programa consome quase 100% do processador, enquanto outro quase não usa CPU mas fica constantemente acessando o disco. Qual afirmação está correta?',
+      opts: ['Ambos os programas são IO bound', 'O programa que usa 100% de CPU é IO bound, e o outro é CPU bound', 'O programa que usa 100% de CPU é CPU bound, e o que acessa muito o disco é IO bound', 'Ambos os programas são CPU bound'],
+      ans: 2,
+      fc: 'Correto! Alto uso de CPU = CPU bound. Acesso constante a disco com baixo uso de CPU = IO bound.',
+      fi: 'CPU bound = usa muito o processador. IO bound = passa o tempo em operações de entrada/saída. São perfis opostos.',
+    },
+  ],
+  estados: [
+    {
+      q: 'Um processo que acabou de ser criado pelo sistema operacional, mas ainda não pode executar, está no estado:',
+      opts: ['READY', 'RUNNING', 'NEW', 'BLOCKED'],
+      ans: 2,
+      fc: 'Correto! NEW é o estado inicial — o processo existe, mas o SO ainda está preparando seus recursos.',
+      fi: 'Quando um processo é criado, ele entra no estado NEW. Só vai para READY quando o SO termina de alocá-lo.',
+    },
+    {
+      q: 'Vários processos podem estar no estado READY ao mesmo tempo?',
+      opts: ['Não, apenas um processo pode estar READY por vez', 'Sim, eles ficam em fila esperando o processador', 'Não, READY é exclusivo como o estado RUNNING', 'Sim, mas apenas se forem do mesmo tipo'],
+      ans: 1,
+      fc: 'Exato! A fila de READY pode ter muitos processos aguardando — o escalonador decide quem vai para RUNNING.',
+      fi: 'Muitos processos podem estar prontos ao mesmo tempo. Eles ficam em uma fila — o escalonador escolhe quem executa.',
+    },
+    {
+      q: 'Um processo está lendo um arquivo grande do disco. Enquanto espera a leitura terminar, ele está no estado:',
+      opts: ['READY', 'RUNNING', 'NEW', 'BLOCKED'],
+      ans: 3,
+      fc: 'Correto! O processo está aguardando uma operação de IO. Ele vai para BLOCKED e libera o processador.',
+      fi: 'Quando um processo espera por IO, ele vai para BLOCKED — liberando o processador para outros processos.',
+    },
+    {
+      q: 'Qual é a ordem correta do ciclo de vida típico de um processo simples que não realiza IO?',
+      opts: ['NEW → RUNNING → READY → TERMINATED', 'NEW → READY → RUNNING → TERMINATED', 'READY → NEW → RUNNING → TERMINATED', 'NEW → READY → BLOCKED → RUNNING → TERMINATED'],
+      ans: 1,
+      fc: 'Perfeito! Esse é o caminho básico: criado, pronto, executando, encerrado.',
+      fi: 'A sequência é: NEW (criado) → READY (aguardando CPU) → RUNNING (executando) → TERMINATED (finalizado).',
+    },
+    {
+      q: 'O que é preempção?',
+      opts: ['O processo pede voluntariamente para parar de executar', 'O processo termina sua execução normalmente', 'O sistema operacional interrompe o processo e o manda de volta para READY', 'O processo é movido de BLOCKED para RUNNING diretamente'],
+      ans: 2,
+      fc: 'Exato! Preempção é o SO tirando o processador de um processo à força — sem que o processo tenha pedido.',
+      fi: 'Preempção é involuntária — o SO interrompe o processo (por tempo esgotado ou prioridade) e o retorna para READY.',
+    },
+    {
+      q: 'Um processo estava RUNNING e solicitou uma leitura de arquivo. O que acontece com esse processo?',
+      opts: ['Ele continua RUNNING e aguarda a leitura sem liberar o processador', 'Ele vai para TERMINATED pois não pode mais executar', 'Ele vai para BLOCKED e o processador é liberado para outro processo', 'Ele vai diretamente para NEW para ser reiniciado'],
+      ans: 2,
+      fc: 'Correto! O processo vai para BLOCKED, liberando o processador. Quando a leitura terminar, ele volta para READY.',
+      fi: 'Ao solicitar IO, o processo vai para BLOCKED — não faz sentido manter o processador parado esperando.',
+    },
+    {
+      q: 'Um processo pode ir diretamente do estado BLOCKED para o estado RUNNING, sem passar por READY.',
+      opts: ['Verdadeiro', 'Falso'],
+      ans: 1,
+      fc: 'Correto! Quando o IO termina, o processo volta para READY — entra na fila e espera o escalonador escolhê-lo novamente.',
+      fi: 'Ao sair de BLOCKED, o processo sempre vai para READY primeiro. Nunca diretamente para RUNNING.',
+    },
+  ],
+  algoritmos: [
+    {
+      q: 'No algoritmo FIFO, qual processo executa primeiro?',
+      opts: ['O processo com menor burst de CPU', 'O processo com maior prioridade', 'O processo que chegou primeiro na fila', 'O processo que está há mais tempo em BLOCKED'],
+      ans: 2,
+      fc: 'Correto! FIFO é simples: primeiro a chegar, primeiro a ser atendido.',
+      fi: 'FIFO = First In, First Out. A ordem de chegada é o único critério.',
+    },
+    {
+      q: 'O "efeito comboio" é um problema do FIFO onde:',
+      opts: ['Processos curtos executam antes de processos longos', 'Processos longos bloqueiam processos curtos que chegaram depois', 'O quantum é muito grande e causa lentidão', 'O escalonador não consegue decidir quem executa'],
+      ans: 1,
+      fc: 'Exato! No FIFO, se um processo longo está na frente, todos os curtos ficam presos atrás — como um comboio.',
+      fi: 'O efeito comboio acontece quando processos longos monopolizam o processador, forçando os curtos a esperar.',
+    },
+    {
+      q: 'Qual é a principal diferença entre SJF e SRTF?',
+      opts: ['SJF usa quantum, SRTF não usa', 'SRTF é preemptivo — pode interromper o processo atual se um processo mais curto chegar', 'SJF é mais justo porque não causa starvation', 'SRTF só funciona quando todos os processos chegam ao mesmo tempo'],
+      ans: 1,
+      fc: 'Correto! SRTF é o SJF com preempção — se um processo com burst menor chegar, o atual é interrompido.',
+      fi: 'A diferença fundamental é a preempção. SRTF pode interromper o processo atual; SJF não.',
+    },
+    {
+      q: 'Três processos chegam juntos em t=0: P1 (burst 6ms), P2 (burst 2ms), P3 (burst 4ms). Usando SJF, qual a ordem de execução?',
+      opts: ['P1 → P2 → P3', 'P2 → P3 → P1', 'P3 → P2 → P1', 'P1 → P3 → P2'],
+      ans: 1,
+      fc: 'Correto! SJF ordena do menor para o maior burst: P2 (2ms) → P3 (4ms) → P1 (6ms).',
+      fi: 'SJF escolhe o processo com menor burst primeiro. Ordene: P2=2ms, P3=4ms, P1=6ms.',
+    },
+    {
+      q: 'No Round Robin com quantum = 4ms, o que acontece quando um processo tem burst de 3ms?',
+      opts: ['O processo executa por 4ms e é interrompido mesmo sem terminar', 'O processo executa por 3ms, termina e libera o processador', 'O processo vai para BLOCKED automaticamente', 'O quantum é ajustado para 3ms automaticamente'],
+      ans: 1,
+      fc: 'Exato! O quantum é o máximo, não o mínimo. Se o processo terminar antes, ele simplesmente encerra.',
+      fi: 'O quantum é um limite superior. O processo termina quando acabar seu burst, mesmo que o quantum não tenha esgotado.',
+    },
+    {
+      q: 'Um sistema precisa garantir que nenhum processo fique sem executar por muito tempo e que o tempo de resposta seja bom. Qual algoritmo é mais adequado?',
+      opts: ['FIFO — porque é simples', 'SJF — porque minimiza o tempo médio de espera', 'SRTF — porque é o mais eficiente matematicamente', 'Round Robin — porque distribui o processador igualmente entre todos'],
+      ans: 3,
+      fc: 'Correto! Round Robin garante que todos os processos recebem fatias regulares de CPU — sem starvation e com bom tempo de resposta.',
+      fi: 'Round Robin é o algoritmo projetado para fairness e tempo de resposta. SJF e SRTF podem causar starvation.',
+    },
+    {
+      q: 'O algoritmo SRTF exige que o sistema operacional conheça antecipadamente o tempo de burst de cada processo.',
+      opts: ['Verdadeiro', 'Falso'],
+      ans: 0,
+      fc: 'Correto! Tanto SJF quanto SRTF precisam saber o burst. Na prática, esse valor é estimado com base no histórico.',
+      fi: 'SRTF precisa saber o tempo restante de cada processo para decidir quem executa. Na prática, é estimado.',
+    },
+  ],
+};
+
+// ── Componentes base ──────────────────────────────────────────────────────────
+
+const cardStyle = {
+  background: C.surface, border: `1px solid ${C.border}`,
+  borderRadius: 14, padding: '24px 28px',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+};
+
+const labelStyle = {
+  fontSize: 11, fontWeight: 700, letterSpacing: '0.14em',
+  textTransform: 'uppercase', marginBottom: 12,
+};
+
+function SectionBlock({ title, color, children }) {
+  return (
+    <div style={cardStyle}>
+      {title && <div style={{ ...labelStyle, color: color || C.textMuted }}>{title}</div>}
+      {children}
+    </div>
+  );
+}
+
+function P({ children, mt }) {
+  return <p style={{ fontSize: 15, color: C.textSub, lineHeight: 1.7, marginTop: mt || 0 }}>{children}</p>;
+}
+
+// ── Conteúdo: Módulo 1 — Processos ───────────────────────────────────────────
+
+function ProcessosContent({ color }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <SectionBlock title="Definição" color={color}>
+        <P>Um processo é um programa em execução. Quando você abre um navegador, um editor de texto ou um jogo, o sistema operacional cria um processo para cada um deles.</P>
+        <P mt={12}>Um processo não é apenas o código do programa — ele carrega consigo tudo que precisa para rodar: os dados que está usando, o ponto onde parou de executar e informações sobre os recursos que ocupa.</P>
+      </SectionBlock>
+
+      <SectionBlock title="O que um processo contém?" color={color}>
+        <P>Cada processo possui um <strong>contexto</strong> — o conjunto de informações que o SO precisa guardar para pausar e retomar a execução a qualquer momento:</P>
+        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {['O código do programa que está sendo executado', 'Os dados em uso (variáveis, resultados parciais)', 'O estado atual (em qual instrução o processo está)', 'Referências à memória alocada para ele'].map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, fontSize: 14, color: C.textSub, lineHeight: 1.5 }}>
+              <span style={{ color, fontWeight: 700, flexShrink: 0 }}>→</span>
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      <SectionBlock title="Tipos de Processo" color={color}>
+        <P>Processos se comportam de formas diferentes dependendo do que fazem. Existem dois perfis principais:</P>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+          <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 12, padding: '18px 20px' }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: '#c2410c', marginBottom: 8 }}>⚡ CPU Bound</div>
+            <p style={{ fontSize: 13, color: C.textSub, lineHeight: 1.6, marginBottom: 10 }}>Passa a maior parte do tempo realizando cálculos no processador.</p>
+            <div style={{ fontSize: 12, color: '#c2410c', fontWeight: 600, marginBottom: 4 }}>Exemplos:</div>
+            <p style={{ fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>Renderização de vídeo, compressão de arquivos, simulações científicas.</p>
+            <p style={{ marginTop: 10, fontSize: 12, color: C.textMuted, fontStyle: 'italic' }}>Usa pouco disco ou rede, mas ocupa o processador por longos períodos.</p>
+          </div>
+          <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '18px 20px' }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: '#1d4ed8', marginBottom: 8 }}>💾 IO Bound</div>
+            <p style={{ fontSize: 13, color: C.textSub, lineHeight: 1.6, marginBottom: 10 }}>Passa a maior parte do tempo esperando por operações de entrada e saída.</p>
+            <div style={{ fontSize: 12, color: '#1d4ed8', fontWeight: 600, marginBottom: 4 }}>Exemplos:</div>
+            <p style={{ fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>Navegador carregando página, editor de texto aguardando digitação.</p>
+            <p style={{ marginTop: 10, fontSize: 12, color: C.textMuted, fontStyle: 'italic' }}>Usa pouco processador, mas passa muito tempo bloqueado esperando dados.</p>
+          </div>
+        </div>
+      </SectionBlock>
+
+      <SectionBlock title="Por que isso importa?" color={color}>
+        <P>Saber se um processo é CPU bound ou IO bound ajuda o sistema operacional a tomar decisões mais inteligentes sobre quem deve usar o processador agora.</P>
+        <P mt={10}>Se todos os processos forem CPU bound, o processador fica sobrecarregado. Se forem IO bound, ele fica ocioso. Um bom escalonador leva isso em conta.</P>
+      </SectionBlock>
+    </div>
+  );
+}
+
+// ── Conteúdo: Módulo 2 — Estados ─────────────────────────────────────────────
+
+function EstadosContent({ color }) {
+  const estados = [
+    { title: 'NEW', sub: 'Novo', desc: 'O processo foi criado, mas ainda não está pronto para executar. O SO está alocando recursos para ele.', analogy: 'Você se inscreveu em uma fila, mas ainda não recebeu sua senha.', bg: '#fafafa', border: '#d4d4d4', ac: '#737373' },
+    { title: 'READY', sub: 'Pronto', desc: 'O processo está pronto para executar e aguardando o processador ficar disponível. Pode haver vários processos em READY ao mesmo tempo.', analogy: 'Você tem a senha na mão e está esperando ser chamado.', bg: '#fef9e7', border: '#f5d76e', ac: '#b7950b' },
+    { title: 'RUNNING', sub: 'Executando', desc: 'O processo está efetivamente usando o processador. Em um núcleo, apenas um processo pode estar RUNNING por vez.', analogy: 'Você está sendo atendido no guichê.', bg: '#e8f5e9', border: '#66bb6a', ac: '#2e7d32' },
+    { title: 'BLOCKED', sub: 'Bloqueado', desc: 'O processo está esperando por algo externo — leitura de disco, rede, entrada do usuário. Enquanto espera, libera o processador.', analogy: 'Você precisa buscar um documento. Sai do guichê e fica em espera.', bg: '#fdecec', border: '#ef9a9a', ac: '#c62828' },
+    { title: 'TERMINATED', sub: 'Encerrado', desc: 'O processo terminou sua execução. O SO libera os recursos que ele ocupava.', analogy: 'Seu atendimento terminou. Você saiu.', bg: '#eceff1', border: '#90a4ae', ac: '#455a64' },
+  ];
+
+  const transitions = [
+    { de: 'NEW', para: 'READY', quando: 'SO termina de preparar o processo' },
+    { de: 'READY', para: 'RUNNING', quando: 'Escalonador escolhe o processo para executar' },
+    { de: 'RUNNING', para: 'READY', quando: 'Tempo esgotado ou processo de maior prioridade aparece (preempção)' },
+    { de: 'RUNNING', para: 'BLOCKED', quando: 'Processo solicita operação de entrada/saída' },
+    { de: 'BLOCKED', para: 'READY', quando: 'A operação esperada foi concluída' },
+    { de: 'RUNNING', para: 'TERMINATED', quando: 'Processo termina sua execução' },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <SectionBlock title="Por que estados existem?" color={color}>
+        <P>Em um sistema com vários processos rodando ao mesmo tempo, o processador só consegue executar <strong>um processo por vez</strong> (em um núcleo). Para gerenciar isso, o SO rastreia em qual situação cada processo se encontra — isso é o <strong>estado</strong> do processo.</P>
+      </SectionBlock>
+
+      <SectionBlock title="Os 5 estados" color={color}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {estados.map(e => (
+            <div key={e.title} style={{ background: e.bg, border: `1.5px solid ${e.border}`, borderRadius: 12, padding: '16px 18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: e.ac, flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 13, color: e.ac }}>{e.title}</div>
+                  <div style={{ fontSize: 11, color: e.ac, opacity: 0.8 }}>{e.sub}</div>
+                </div>
+              </div>
+              <p style={{ fontSize: 13, color: C.textSub, lineHeight: 1.6, marginBottom: 6 }}>{e.desc}</p>
+              <p style={{ fontSize: 12, color: C.textMuted, fontStyle: 'italic' }}>💬 {e.analogy}</p>
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      <SectionBlock title="Transições entre estados" color={color}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: '#f9fafb' }}>
+                {['De', 'Para', 'Quando ocorre'].map(h => (
+                  <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: C.textMuted, borderBottom: `1px solid ${C.border}` }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {transitions.map((t, i) => (
+                <tr key={i} style={{ borderBottom: `1px solid ${C.border}` }}>
+                  <td style={{ padding: '10px 12px' }}><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: 12, background: '#f4f4f5', padding: '2px 8px', borderRadius: 4 }}>{t.de}</span></td>
+                  <td style={{ padding: '10px 12px' }}><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: 12, background: '#f4f4f5', padding: '2px 8px', borderRadius: 4 }}>{t.para}</span></td>
+                  <td style={{ padding: '10px 12px', color: C.textSub }}>{t.quando}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionBlock>
+
+      <SectionBlock title="Preempção" color={color}>
+        <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '16px 20px' }}>
+          <div style={{ fontWeight: 700, color: '#c2410c', marginBottom: 8, fontSize: 15 }}>O que é preempção?</div>
+          <P>Preempção é quando o sistema operacional interrompe um processo que está RUNNING e o manda de volta para READY — <strong>sem que o processo tenha pedido isso</strong>.</P>
+          <P mt={10}>Isso acontece quando o tempo de CPU do processo esgota (no Round Robin) ou quando um processo mais urgente precisa executar.</P>
+          <p style={{ marginTop: 12, fontSize: 13, color: C.textMuted, fontStyle: 'italic' }}>Nem todos os algoritmos usam preempção — veremos isso no próximo módulo.</p>
+        </div>
+      </SectionBlock>
+    </div>
+  );
+}
+
+// ── Conteúdo: Módulo 3 — Algoritmos ──────────────────────────────────────────
+
+function AlgoritmosContent({ color }) {
+  const concepts = [
+    { term: 'Burst de CPU', def: 'Tempo que um processo usa o processador de forma contínua antes de precisar de IO ou terminar. Base para SJF e SRTF.' },
+    { term: 'Quantum', def: 'Tempo máximo que um processo pode usar o processador de uma vez. Após o quantum, sofre preempção e volta para READY. Usado no Round Robin.' },
+    { term: 'Tempo de espera', def: 'Quanto tempo o processo ficou na fila READY esperando executar. Bons algoritmos tentam minimizar isso.' },
+    { term: 'Turnaround', def: 'Tempo total desde que o processo foi criado até ser finalizado. Inclui espera + execução.' },
+    { term: 'Preempção', def: 'O SO interrompe um processo em execução para dar o processador a outro. Algoritmos preemptivos fazem isso; não-preemptivos não.' },
+  ];
+
+  const algos = [
+    {
+      name: 'FIFO', full: 'First In, First Out', color: '#4A7FE8', tag: 'Não-preemptivo',
+      rule: 'O primeiro processo que entrou na fila é o primeiro a executar.',
+      example: 'P1 (burst 8ms) → P2 (burst 4ms) → P3 (burst 2ms), chegando nessa ordem\n\nExecução: [P1: 0–8]  [P2: 8–12]  [P3: 12–14]\n\nEspera:  P1=0ms  P2=8ms  P3=12ms  →  média: 6,6ms',
+      pros: 'Simples de implementar. Sem starvation — todo processo eventualmente executa.',
+      cons: 'Efeito comboio — processos curtos ficam presos atrás de processos longos.',
+    },
+    {
+      name: 'SJF', full: 'Shortest Job First', color: '#47A96A', tag: 'Não-preemptivo',
+      rule: 'Entre os processos prontos, o que tiver o menor burst de CPU executa primeiro.',
+      example: 'P1 (burst 8ms)  P2 (burst 4ms)  P3 (burst 2ms)  —  todos chegam em t=0\n\nExecução: [P3: 0–2]  [P2: 2–6]  [P1: 6–14]\n\nEspera:  P1=6ms  P2=2ms  P3=0ms  →  média: 2,6ms  ← melhor!',
+      pros: 'Minimiza o tempo médio de espera — ótimo matematicamente para esse critério.',
+      cons: 'Precisa saber o burst antecipadamente. Starvation possível para processos longos.',
+    },
+    {
+      name: 'SRTF', full: 'Shortest Remaining Time First', color: '#E8794A', tag: 'Preemptivo',
+      rule: 'Sempre executa o processo com o menor tempo RESTANTE de burst. Um novo processo com burst menor interrompe o atual.',
+      example: 't=0: P1 chega (burst 8ms)  →  começa executar\nt=2: P2 chega (burst 4ms)\n      P1 tem 6ms restantes, P2 tem 4ms  →  P2 preempção P1!\nt=6: P2 termina  →  P1 volta com 6ms restantes\nt=12: P1 termina',
+      pros: 'Ótimo para minimizar tempo médio de espera com chegadas dinâmicas.',
+      cons: 'Alto overhead de troca de contexto. Starvation ainda possível.',
+    },
+    {
+      name: 'Round Robin', full: 'Round Robin', color: '#B85AC4', tag: 'Preemptivo',
+      rule: 'Cada processo recebe um quantum de tempo. Após o quantum, vai para o fim da fila READY e o próximo executa.',
+      example: 'quantum=3ms  |  P1 (8ms)  P2 (4ms)  P3 (2ms)  —  todos em t=0\n\n[P1: 0–3] [P2: 3–6] [P3: 6–8] [P1: 8–11] [P2: 11–12] [P1: 12–14]\n\nP3 terminou em t=8  ·  P2 em t=12  ·  P1 em t=14',
+      pros: 'Justo — cada processo recebe fatias iguais. Bom tempo de resposta para sistemas interativos.',
+      cons: 'Escolher o quantum certo é difícil. Turnaround pode ser pior que SJF.',
+    },
+  ];
+
+  const comparison = [
+    { algo: 'FIFO',       pre: 'Não', burst: 'Não', starv: 'Não',      best: 'Sistemas batch simples' },
+    { algo: 'SJF',        pre: 'Não', burst: 'Sim', starv: 'Possível', best: 'Minimizar tempo médio de espera' },
+    { algo: 'SRTF',       pre: 'Sim', burst: 'Sim', starv: 'Possível', best: 'Chegadas dinâmicas, tempo mínimo' },
+    { algo: 'Round Robin',pre: 'Sim', burst: 'Não', starv: 'Não',      best: 'Sistemas interativos' },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <SectionBlock title="O problema do escalonamento" color={color}>
+        <P>Com vários processos em READY ao mesmo tempo e apenas um processador disponível, alguém precisa decidir: <strong>quem executa agora?</strong></P>
+        <P mt={10}>Essa decisão é tomada pelo <strong>escalonador</strong>, e a regra que ele segue é o <strong>algoritmo de escalonamento</strong>. Diferentes algoritmos priorizam coisas diferentes — nenhum é perfeito para todos os casos.</P>
+      </SectionBlock>
+
+      <SectionBlock title="Conceitos importantes" color={color}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {concepts.map(c => (
+            <div key={c.term} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 11, color, background: color + '18', padding: '3px 10px', borderRadius: 6, flexShrink: 0, marginTop: 2, whiteSpace: 'nowrap' }}>{c.term}</div>
+              <p style={{ fontSize: 14, color: C.textSub, lineHeight: 1.6 }}>{c.def}</p>
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      {algos.map(a => (
+        <SectionBlock key={a.name} title={`${a.name} — ${a.full}`} color={a.color}>
+          <div style={{ display: 'inline-block', background: a.color + '18', color: a.color, fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 100, marginBottom: 12 }}>{a.tag}</div>
+          <P><strong>Regra:</strong> {a.rule}</P>
+          <div style={{ margin: '14px 0', background: '#f9fafb', border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px', fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: C.textSub, lineHeight: 1.8, whiteSpace: 'pre' }}>
+            {a.example}
+          </div>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#16a34a', marginBottom: 4 }}>✓ Vantagens</div>
+              <p style={{ fontSize: 13, color: C.textSub, lineHeight: 1.5 }}>{a.pros}</p>
+            </div>
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#dc2626', marginBottom: 4 }}>✗ Desvantagens</div>
+              <p style={{ fontSize: 13, color: C.textSub, lineHeight: 1.5 }}>{a.cons}</p>
+            </div>
+          </div>
+        </SectionBlock>
+      ))}
+
+      <SectionBlock title="Comparativo rápido" color={color}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: '#f9fafb' }}>
+                {['Algoritmo', 'Preemptivo?', 'Precisa do burst?', 'Starvation?', 'Melhor para'].map(h => (
+                  <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: C.textMuted, borderBottom: `1px solid ${C.border}` }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {comparison.map((r, i) => (
+                <tr key={i} style={{ borderBottom: `1px solid ${C.border}` }}>
+                  <td style={{ padding: '10px 12px', fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 12 }}>{r.algo}</td>
+                  <td style={{ padding: '10px 12px', color: r.pre === 'Sim' ? '#16a34a' : C.textSub, fontWeight: r.pre === 'Sim' ? 600 : 400 }}>{r.pre}</td>
+                  <td style={{ padding: '10px 12px', color: r.burst === 'Sim' ? '#c2410c' : C.textSub }}>{r.burst}</td>
+                  <td style={{ padding: '10px 12px', color: r.starv === 'Não' ? '#16a34a' : '#c2410c', fontWeight: 600 }}>{r.starv}</td>
+                  <td style={{ padding: '10px 12px', color: C.textSub }}>{r.best}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionBlock>
+    </div>
+  );
+}
+
+// ── Barra de progresso global ─────────────────────────────────────────────────
+
+function ProgressNav({ step }) {
+  const items = [
+    { key: 'content_processos', label: 'Processos',   color: MOD.processos.color },
+    { key: 'quiz_processos',    label: 'Quiz 1',      color: MOD.processos.color },
+    { key: 'content_estados',   label: 'Estados',     color: MOD.estados.color },
+    { key: 'quiz_estados',      label: 'Quiz 2',      color: MOD.estados.color },
+    { key: 'content_algoritmos',label: 'Algoritmos',  color: MOD.algoritmos.color },
+    { key: 'quiz_algoritmos',   label: 'Quiz 3',      color: MOD.algoritmos.color },
+  ];
+  const curIdx = STEPS.indexOf(step);
+
+  return (
+    <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '14px 24px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', alignItems: 'center' }}>
+        {items.map((s, i) => {
+          const sIdx = STEPS.indexOf(s.key);
+          const done = sIdx < curIdx;
+          const active = sIdx === curIdx;
+          return (
+            <React.Fragment key={s.key}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 70 }}>
+                <div style={{ width: 26, height: 26, borderRadius: '50%', background: done || active ? s.color : '#e4e4e7', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 200ms' }}>
+                  {done
+                    ? <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>✓</span>
+                    : active
+                      ? <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff' }} />
+                      : <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#a1a1aa' }} />
+                  }
+                </div>
+                <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active || done ? s.color : C.textMuted, whiteSpace: 'nowrap' }}>{s.label}</span>
+              </div>
+              {i < items.length - 1 && (
+                <div style={{ flex: 1, height: 2, background: STEPS.indexOf(items[i+1].key) <= curIdx ? items[i+1].color : '#e4e4e7', marginBottom: 16, transition: 'background 300ms' }} />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Tela de conteúdo ──────────────────────────────────────────────────────────
+
+function ContentScreen({ module, onNext }) {
+  const meta = MOD[module];
+  const Content = { processos: ProcessosContent, estados: EstadosContent, algoritmos: AlgoritmosContent }[module];
+  const titles = {
+    processos: 'O que é um Processo?',
+    estados: 'A Vida de um Processo: Estados e Transições',
+    algoritmos: 'Como o SO Decide Quem Executa Agora?',
+  };
+
+  return (
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 24px 80px' }}>
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: meta.color, marginBottom: 8 }}>
+          Módulo {meta.num} — {meta.label}
+        </div>
+        <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.2, color: C.text }}>{titles[module]}</h1>
+      </div>
+
+      <Content color={meta.color} />
+
+      <div style={{ marginTop: 40, display: 'flex', alignItems: 'center', gap: 16 }}>
+        <button
+          onClick={onNext}
+          style={{ background: meta.color, color: '#fff', border: 'none', borderRadius: 10, padding: '13px 28px', fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15, cursor: 'pointer' }}
+        >
+          Fazer Quiz {meta.num} →
+        </button>
+        <span style={{ fontSize: 13, color: C.textMuted }}>7 questões · mínimo 5 acertos para avançar</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Tela de quiz ──────────────────────────────────────────────────────────────
+
+function QuizScreen({ module, onComplete }) {
+  const meta = MOD[module];
+  const raw = QUIZZES[module];
+
+  const makeQuestions = () => shuffle(raw).map(q => ({
+    ...q,
+    shuffled: shuffle(q.opts.map((text, i) => ({ text, orig: i }))),
+  }));
+
+  const [questions, setQuestions] = React.useState(makeQuestions);
+  const [idx, setIdx] = React.useState(0);
+  const [selected, setSelected] = React.useState(null);
+  const [confirmed, setConfirmed] = React.useState(false);
+  const [score, setScore] = React.useState(0);
+  const [log, setLog] = React.useState([]);
+  const [done, setDone] = React.useState(false);
+
+  const q = questions[idx];
+  const correctPos = q ? q.shuffled.findIndex(o => o.orig === q.ans) : -1;
+  const wasCorrect = selected === correctPos;
+
+  function confirm() {
+    if (selected === null || confirmed) return;
+    const ok = selected === correctPos;
+    setConfirmed(true);
+    if (ok) setScore(s => s + 1);
+    setLog(l => [...l, ok]);
+  }
+
+  function next() {
+    if (idx + 1 >= questions.length) { setDone(true); return; }
+    setIdx(i => i + 1);
+    setSelected(null);
+    setConfirmed(false);
+  }
+
+  function retry() {
+    setQuestions(makeQuestions());
+    setIdx(0); setSelected(null); setConfirmed(false);
+    setScore(0); setLog([]); setDone(false);
+  }
+
+  if (done) {
+    const passed = score >= 5;
+    return (
+      <div style={{ maxWidth: 580, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
+        <div style={{ fontSize: 56, marginBottom: 16 }}>{passed ? '🎉' : '📋'}</div>
+        <h2 style={{ fontSize: 28, fontWeight: 800, color: C.text, marginBottom: 10 }}>{passed ? 'Aprovado!' : 'Tente novamente'}</h2>
+        <p style={{ fontSize: 16, color: C.textSub, marginBottom: 40 }}>
+          Você acertou <strong>{score} de {questions.length}</strong> questões.{' '}
+          {passed ? 'Pode avançar!' : 'Você precisa de pelo menos 5 acertos.'}
+        </p>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 40, flexWrap: 'wrap' }}>
+          {log.map((ok, i) => (
+            <div key={i} style={{ width: 40, height: 40, borderRadius: 8, background: ok ? '#dcfce7' : '#fee2e2', border: `2px solid ${ok ? '#16a34a' : '#dc2626'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, color: ok ? '#16a34a' : '#dc2626' }}>
+              {ok ? '✓' : '✗'}
+            </div>
+          ))}
+        </div>
+
+        {passed ? (
+          <button onClick={() => onComplete(score)} style={{ background: meta.color, color: '#fff', border: 'none', borderRadius: 10, padding: '13px 32px', fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+            Avançar →
+          </button>
+        ) : (
+          <button onClick={retry} style={{ background: meta.color, color: '#fff', border: 'none', borderRadius: 10, padding: '13px 32px', fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+            ↺ Tentar novamente
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: 660, margin: '0 auto', padding: '40px 24px 80px' }}>
+      {/* Cabeçalho quiz */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: meta.color }}>Quiz {meta.num} — {meta.label}</span>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: C.textMuted }}>{idx + 1} / {questions.length}</span>
+        </div>
+        <div style={{ height: 4, background: C.border, borderRadius: 2, overflow: 'hidden', marginBottom: 8 }}>
+          <div style={{ height: '100%', background: meta.color, borderRadius: 2, width: `${(idx / questions.length) * 100}%`, transition: 'width 300ms' }} />
+        </div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {log.map((ok, i) => <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: ok ? '#16a34a' : '#dc2626' }} />)}
+          {Array.from({ length: questions.length - log.length }).map((_, i) => <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: C.border }} />)}
+        </div>
+      </div>
+
+      {/* Pergunta */}
+      <div style={{ ...cardStyle, marginBottom: 20 }}>
+        <p style={{ fontSize: 17, fontWeight: 600, color: C.text, lineHeight: 1.55 }}>{q.q}</p>
+      </div>
+
+      {/* Opções */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+        {q.shuffled.map((opt, i) => {
+          let bg = C.surface, border = C.border, tc = C.text;
+          if (confirmed) {
+            if (i === correctPos) { bg = '#dcfce7'; border = '#16a34a'; tc = '#166534'; }
+            else if (i === selected && !wasCorrect) { bg = '#fee2e2'; border = '#dc2626'; tc = '#991b1b'; }
+          } else if (selected === i) {
+            bg = meta.color + '12'; border = meta.color;
+          }
+          return (
+            <button
+              key={i}
+              onClick={() => { if (!confirmed) setSelected(i); }}
+              style={{ background: bg, border: `2px solid ${border}`, borderRadius: 12, padding: '14px 20px', textAlign: 'left', fontFamily: "'Inter', sans-serif", fontSize: 14, color: tc, lineHeight: 1.5, cursor: confirmed ? 'default' : 'pointer', transition: 'all 150ms', fontWeight: confirmed && i === correctPos ? 600 : 400 }}
+            >
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, marginRight: 10, color: confirmed ? 'inherit' : meta.color }}>{['A', 'B', 'C', 'D'][i]}</span>
+              {opt.text}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Feedback */}
+      {confirmed && (
+        <div style={{ background: wasCorrect ? '#f0fdf4' : '#fef2f2', border: `1px solid ${wasCorrect ? '#bbf7d0' : '#fecaca'}`, borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: wasCorrect ? '#166534' : '#991b1b', marginBottom: 6 }}>{wasCorrect ? '✓ Correto!' : '✗ Incorreto'}</div>
+          <p style={{ fontSize: 14, color: wasCorrect ? '#15803d' : '#b91c1c', lineHeight: 1.6 }}>{wasCorrect ? q.fc : q.fi}</p>
+        </div>
+      )}
+
+      {!confirmed ? (
+        <button
+          onClick={confirm}
+          disabled={selected === null}
+          style={{ background: selected !== null ? meta.color : C.border, color: selected !== null ? '#fff' : C.textMuted, border: 'none', borderRadius: 10, padding: '12px 28px', fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 14, cursor: selected !== null ? 'pointer' : 'not-allowed', transition: 'all 150ms' }}
+        >
+          Confirmar
+        </button>
+      ) : (
+        <button
+          onClick={next}
+          style={{ background: meta.color, color: '#fff', border: 'none', borderRadius: 10, padding: '12px 28px', fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
+        >
+          {idx + 1 >= questions.length ? 'Ver resultado →' : 'Próxima →'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ── Tela de conclusão ─────────────────────────────────────────────────────────
+
+function CompletedScreen({ results }) {
+  return (
+    <div style={{ maxWidth: 640, margin: '0 auto', padding: '80px 24px', textAlign: 'center' }}>
+      <div style={{ fontSize: 64, marginBottom: 24 }}>🎓</div>
+      <h1 style={{ fontSize: 34, fontWeight: 800, letterSpacing: '-0.02em', color: C.text, marginBottom: 16 }}>Conteúdo concluído!</h1>
+      <p style={{ fontSize: 17, color: C.textSub, lineHeight: 1.6, maxWidth: 460, margin: '0 auto 48px' }}>
+        Você completou os três módulos e está pronto para praticar com o simulador interativo.
+      </p>
+
+      <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 52 }}>
+        {Object.entries(results).map(([mod, score]) => {
+          const m = MOD[mod];
+          return (
+            <div key={mod} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: '18px 28px', minWidth: 140 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: m.color, marginBottom: 8 }}>{m.label}</div>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 30, fontWeight: 700, color: C.text }}>{score}/7</div>
+              <div style={{ fontSize: 12, color: C.textMuted, marginTop: 4 }}>acertos</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <a href="index.html" style={{ display: 'inline-block', background: '#18181b', color: '#fff', borderRadius: 12, padding: '16px 44px', fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 16, textDecoration: 'none' }}>
+        Ir para o Simulador →
+      </a>
+    </div>
+  );
+}
+
+// ── App ───────────────────────────────────────────────────────────────────────
+
+function App() {
+  const saved = loadProgress();
+  const [step, setStep] = React.useState(saved?.step || 'content_processos');
+  const [results, setResults] = React.useState(saved?.results || {});
+
+  React.useEffect(() => {
+    saveProgress({ step, results });
+    if (step === 'completed') {
+      try { localStorage.setItem('learn:completed', 'true'); } catch {}
+    }
+  }, [step, results]);
+
+  function go(s) {
+    setStep(s);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function finishQuiz(module, score) {
+    setResults(r => ({ ...r, [module]: score }));
+    const next = STEPS[STEPS.indexOf(`quiz_${module}`) + 1];
+    go(next);
+  }
+
+  const render = () => {
+    if (step === 'completed') return <CompletedScreen results={results} />;
+    const [phase, module] = step.split('_');
+    if (phase === 'content') return <ContentScreen module={module} onNext={() => go(`quiz_${module}`)} />;
+    if (phase === 'quiz') return <QuizScreen module={module} onComplete={(s) => finishQuiz(module, s)} />;
+    return null;
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: C.bg }}>
+      {step !== 'completed' && <ProgressNav step={step} />}
+      {render()}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

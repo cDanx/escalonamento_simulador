@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Desafio de Escalonamento</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; background: #f4f4f5; color: #18181b; font-family: 'Inter', system-ui, sans-serif; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="simulator.js"></script>
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel" src="scene.jsx"></script>
+
+<script type="text/babel">
+
+// ── Constantes de algoritmo ───────────────────────────────────────────────────
+const ALGO_INFO = {
+  fifo: {
+    name: 'FIFO', fullName: 'First In, First Out', color: '#4A7FE8',
+    description: 'Execute os processos na ordem em que chegaram. Sem preempção: cada processo roda até terminar.',
+    rules: [
+      'Execute o processo que chegou primeiro (menor arrival)',
+      'Sem interrupção — o processo roda até burst = 0',
+      'Empate de chegada → menor ID tem prioridade',
+      'CPU ociosa só se nenhum processo chegou ainda',
+    ],
+  },
+  sjf: {
+    name: 'SJF', fullName: 'Shortest Job First', color: '#47A96A',
+    description: 'Quando a CPU fica livre, escolha o processo com o menor burst total entre os disponíveis. Sem preempção.',
+    rules: [
+      'CPU livre → escolhe o processo de menor burst entre os prontos',
+      'Sem interrupção — o processo roda até burst = 0',
+      'Empate de burst → menor ID tem prioridade',
+      'Processo que chega enquanto CPU está ocupada espera na fila',
+    ],
+  },
+  srtf: {
+    name: 'SRTF', fullName: 'Shortest Remaining Time First', color: '#E8794A',
+    description: 'A cada ciclo, execute o processo com o menor tempo RESTANTE. Um novo processo pode interromper o atual se chegar com burst menor.',
+    rules: [
+      'A cada ciclo: executa quem tem menor tempo restante',
+      'Preemptivo: novo processo interrompe se tiver menos tempo restante',
+      'Empate de tempo restante → menor ID tem prioridade',
+      'É como SJF mas verifica a cada ciclo, não só quando a CPU libera',
+    ],
+  },
+  rr: {
+    name: 'Round Robin', fullName: 'Round Robin (quantum = 3)', color: '#B85AC4',
+    description: 'Cada processo recebe no máximo 3 ciclos por vez. Ao esgotar o quantum, volta para o FIM da fila. Fila FIFO.',
+    rules: [
+      'Cada processo recebe até 3 ciclos por vez (quantum)',
+      'Ao esgotar o quantum, volta para o FIM da fila de prontos',
+      'Novos processos entram no FIM da fila na ordem de chegada',
+      'Se terminar antes do quantum, libera a CPU imediatamente',
+    ],
+  },
+};
+
+// Tweaks para o SimulationScene
+const TWEAKS = { cardHeight: 72, cardGap: 10, topOffset: 150, modalPaddingH: 38 };
+
+// ── Utilitários ───────────────────────────────────────────────────────────────
+function getAlgoFromURL() {
+  const p = new URLSearchParams(window.location.search);
+  const a = p.get('algo') || 'fifo';
+  return ALGO_INFO[a] ? a : 'fifo';
+}
+
+function buildCorrectSchedule(timeline) {
+  const schedule = {};
+  for (const s of timeline) { if (s.cycle >= 0) schedule[s.cycle] = s.ranThisCycle; }
+  return schedule;
+}
+
+function getTotalCycles(timeline) {
+  let max = 0;
+  for (const s of timeline) if (s.cycle > max) max = s.cycle;
+  return max + 1;
+}
+
+function getProcById(procs, id) { return procs.find(p => p.id === id); }
+
+// ── Estilos base (tema claro) ─────────────────────────────────────────────────
+const C = {
+  bg: '#f4f4f5',
+  surface: '#ffffff',
+  border: '#e4e4e7',
+  text: '#18181b',
+  textSub: '#71717a',
+  textMuted: '#a1a1aa',
+};
+
+const card = {
+  background: C.surface,
+  border: `1px solid ${C.border}`,
+  borderRadius: 14,
+  padding: '20px 24px',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+};
+
+const label = {
+  fontSize: 11, fontWeight: 700, letterSpacing: '0.14em',
+  textTransform: 'uppercase', color: C.textMuted, marginBottom: 8,
+};
+
+const btnSecondary = {
+  background: C.surface, color: C.textSub,
+  border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 22px',
+  fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 14,
+  cursor: 'pointer',
+};
+
+// ── Tabela de processos ────────────────────────────────────────────────────────
+function ProcessTable({ procs, algo }) {
+  return (
+    <div style={{ ...card, flex: 1, minWidth: 220 }}>
+      <div style={label}>Processos do Desafio</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: "'JetBrains Mono', monospace", fontSize: 13 }}>
+        <thead>
+          <tr style={{ color: C.textMuted }}>
+            <th style={{ textAlign: 'left', padding: '4px 8px 8px 0', fontWeight: 600 }}>ID</th>
+            <th style={{ textAlign: 'left', padding: '4px 8px 8px', fontWeight: 600 }}>Chegada</th>
+            <th style={{ textAlign: 'left', padding: '4px 8px 8px', fontWeight: 600 }}>Burst</th>
+            {algo === 'rr' && <th style={{ textAlign: 'left', padding: '4px 8px 8px', fontWeight: 600 }}>Quantum</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {procs.map(p => (
+            <tr key={p.id}>
+              <td style={{ padding: '5px 8px 5px 0' }}>
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  width: 32, height: 24, borderRadius: 6,
+                  background: p.color, color: '#fff', fontWeight: 700, fontSize: 12,
+                }}>P{p.id}</span>
+              </td>
+              <td style={{ padding: '5px 8px', color: C.textSub }}>t = {p.arrival}</td>
+              <td style={{ padding: '5px 8px', color: C.textSub }}>{p.burst}c</td>
+              {algo === 'rr' && <td style={{ padding: '5px 8px', color: '#B85AC4', fontWeight: 600 }}>3c</td>}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── Regras do algoritmo ───────────────────────────────────────────────────────
+function AlgoRules({ algo }) {
+  const info = ALGO_INFO[algo];
+  return (
+    <div style={{ ...card, flex: 1, minWidth: 260 }}>
+      <div style={label}>Regras — {info.name}</div>
+      <p style={{ fontSize: 14, color: C.textSub, marginBottom: 14, lineHeight: 1.6 }}>{info.description}</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {info.rules.map((r, i) => (
+          <div key={i} style={{ display: 'flex', gap: 8, fontSize: 13, color: C.textSub, lineHeight: 1.4 }}>
+            <span style={{ color: info.color, fontWeight: 700, flexShrink: 0 }}>→</span>
+            <span>{r}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Gantt editável — paleta + pintura por arrasto ─────────────────────────────
+function EditableGantt({ procs, totalCycles, userSchedule, onCellClick }) {
+  const CELL_W = 56;
+  const CELL_H = 52;
+  const [selected, setSelected] = React.useState(procs[0]?.id ?? null);
+  const painting = React.useRef(false);
+
+  const paint = React.useCallback((cycle) => {
+    onCellClick(cycle, selected);
+  }, [selected, onCellClick]);
+
+  React.useEffect(() => {
+    const up = () => { painting.current = false; };
+    window.addEventListener('mouseup', up);
+    return () => window.removeEventListener('mouseup', up);
+  }, []);
+
+  const selectedProc = selected != null ? getProcById(procs, selected) : null;
+
+  return (
+    <div>
+      <div style={label}>Monte o Diagrama de Gantt</div>
+
+      {/* Paleta de processos */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 12, color: C.textMuted, fontWeight: 500, marginRight: 4 }}>Caneta:</span>
+        {procs.map(p => (
+          <button
+            key={p.id}
+            onClick={() => setSelected(p.id)}
+            style={{
+              background: selected === p.id ? p.color : '#fff',
+              color: selected === p.id ? '#fff' : p.color,
+              border: `2px solid ${p.color}`,
+              borderRadius: 8, padding: '6px 18px',
+              fontFamily: "'JetBrains Mono', monospace",
+              fontWeight: 700, fontSize: 14, cursor: 'pointer',
+              boxShadow: selected === p.id ? `0 2px 8px ${p.color}55` : 'none',
+              transition: 'all 100ms',
+            }}
+          >P{p.id}</button>
+        ))}
+        <button
+          onClick={() => setSelected(null)}
+          style={{
+            background: selected === null ? '#52525b' : '#fff',
+            color: selected === null ? '#fff' : '#71717a',
+            border: `2px solid #a1a1aa`,
+            borderRadius: 8, padding: '6px 14px',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontWeight: 600, fontSize: 13, cursor: 'pointer',
+            transition: 'all 100ms',
+          }}
+        >✕ apagar</button>
+        {selectedProc && (
+          <span style={{ fontSize: 12, color: C.textMuted, marginLeft: 4 }}>
+            clique ou arraste para pintar P{selectedProc.id}
+          </span>
+        )}
+      </div>
+
+      {/* Gráfico de Gantt */}
+      <div style={{ overflowX: 'auto', paddingBottom: 4 }}>
+        <div style={{ minWidth: totalCycles * CELL_W + 1, position: 'relative' }}>
+
+          {/* Marcadores de chegada acima das bordas */}
+          <div style={{ position: 'relative', height: 22, marginBottom: 2 }}>
+            {procs.map(p => (
+              <div key={p.id} style={{
+                position: 'absolute',
+                left: p.arrival * CELL_W,
+                bottom: 0,
+                transform: 'translateX(-50%)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+              }}>
+                <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: p.color, whiteSpace: 'nowrap' }}>
+                  ↓P{p.id}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Células */}
+          <div
+            style={{ display: 'flex', cursor: 'crosshair', userSelect: 'none' }}
+            onMouseLeave={() => { painting.current = false; }}
+          >
+            {Array.from({ length: totalCycles }).map((_, i) => {
+              const assigned = userSchedule[i] ?? null;
+              const proc = assigned != null ? getProcById(procs, assigned) : null;
+              const prev = i > 0 ? (userSchedule[i-1] ?? null) : '__';
+              const next = i < totalCycles - 1 ? (userSchedule[i+1] ?? null) : '__';
+              const isBlockStart = assigned !== prev;
+              const isBlockEnd   = assigned !== next;
+
+              // Calcula largura do bloco para centralizar label
+              let blockLen = 1;
+              if (isBlockStart && proc) {
+                let j = i + 1;
+                while (j < totalCycles && (userSchedule[j] ?? null) === assigned) j++;
+                blockLen = j - i;
+              }
+
+              return (
+                <div
+                  key={i}
+                  onMouseDown={() => { painting.current = true; paint(i); }}
+                  onMouseEnter={() => { if (painting.current) paint(i); }}
+                  style={{
+                    width: CELL_W,
+                    height: CELL_H,
+                    flexShrink: 0,
+                    position: 'relative',
+                    background: proc ? proc.color + '22' : 'rgba(0,0,0,0.015)',
+                    borderTop:    `2px solid ${proc ? proc.color : '#d4d4d8'}`,
+                    borderBottom: `2px solid ${proc ? proc.color : '#d4d4d8'}`,
+                    borderLeft:   isBlockStart ? `2px solid ${proc ? proc.color : '#d4d4d8'}` : 'none',
+                    borderRight:  isBlockEnd   ? `2px solid ${proc ? proc.color : '#d4d4d8'}` : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  {/* Label centralizado no bloco, renderizado apenas no início */}
+                  {isBlockStart && proc && (
+                    <span style={{
+                      position: 'absolute',
+                      left: 0,
+                      width: blockLen * CELL_W,
+                      textAlign: 'center',
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontWeight: 700, fontSize: 14, color: proc.color,
+                      pointerEvents: 'none',
+                    }}>P{proc.id}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Marcas de tempo nas bordas das células */}
+          <div style={{ position: 'relative', height: 20, marginTop: 1 }}>
+            {Array.from({ length: totalCycles + 1 }).map((_, i) => (
+              <div key={i} style={{
+                position: 'absolute',
+                left: i * CELL_W,
+                top: 0,
+                transform: 'translateX(-50%)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+              }}>
+                <div style={{ width: 1, height: 5, background: '#a1a1aa' }} />
+                <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color: '#a1a1aa', lineHeight: 1.2 }}>{i}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Legenda */}
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 12 }}>
+        {procs.map(p => (
+          <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: C.textSub }}>
+            <div style={{ width: 12, height: 12, borderRadius: 2, background: p.color }} />
+            P{p.id} — burst {p.burst}c, chega t={p.arrival}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Resultado: diff do Gantt ──────────────────────────────────────────────────
+function ResultGantt({ procs, totalCycles, userSchedule, correctSchedule }) {
+  const CELL = 48;
+  const stats = React.useMemo(() => {
+    let correct = 0, wrong = 0;
+    for (let i = 0; i < totalCycles; i++) {
+      if ((userSchedule[i] ?? null) === (correctSchedule[i] ?? null)) correct++;
+      else wrong++;
+    }
+    return { correct, wrong, total: totalCycles };
+  }, [userSchedule, correctSchedule, totalCycles]);
+
+  const getStatus = (cycle) => {
+    const u = userSchedule[cycle] ?? null;
+    const c = correctSchedule[cycle] ?? null;
+    return u === c ? 'correct' : 'wrong';
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div style={{ ...card, padding: '12px 20px', display: 'flex', gap: 10, alignItems: 'center' }}>
+          <span style={{ fontSize: 20 }}>✓</span>
+          <div>
+            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 22, fontWeight: 700, color: '#47A96A' }}>
+              {stats.correct}/{stats.total}
+            </div>
+            <div style={{ fontSize: 12, color: C.textMuted }}>ciclos corretos</div>
+          </div>
+        </div>
+        {stats.wrong > 0 && (
+          <div style={{ ...card, padding: '12px 20px', display: 'flex', gap: 10, alignItems: 'center' }}>
+            <span style={{ fontSize: 20 }}>✗</span>
+            <div>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 22, fontWeight: 700, color: '#EF4444' }}>
+                {stats.wrong}
+              </div>
+              <div style={{ fontSize: 12, color: C.textMuted }}>ciclos errados</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={label}>Sua resposta vs. Gabarito</div>
+
+      <div style={{ display: 'flex', gap: 0, marginBottom: 4, overflowX: 'auto' }}>
+        <div style={{ minWidth: 80, flexShrink: 0 }} />
+        {Array.from({ length: totalCycles }).map((_, i) => (
+          <div key={i} style={{ width: CELL + 2, flexShrink: 0, textAlign: 'center', fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: C.textMuted }}>{i}</div>
+        ))}
+      </div>
+
+      {/* Sua resposta */}
+      <div style={{ display: 'flex', gap: 0, alignItems: 'center', marginBottom: 4, overflowX: 'auto' }}>
+        <div style={{ minWidth: 80, fontSize: 12, color: C.textSub, flexShrink: 0, fontWeight: 600 }}>Sua resp.</div>
+        {Array.from({ length: totalCycles }).map((_, i) => {
+          const u = userSchedule[i] ?? null;
+          const proc = u != null ? getProcById(procs, u) : null;
+          const status = getStatus(i);
+          return (
+            <div key={i} style={{ flexShrink: 0, marginRight: 2 }}>
+              <div style={{
+                width: CELL, height: CELL, borderRadius: 8,
+                background: status === 'correct' ? (proc ? proc.color + '18' : '#fafafa') : 'rgba(239,68,68,0.08)',
+                border: `2px solid ${status === 'correct' ? (proc ? proc.color : C.border) : '#EF4444'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {proc
+                  ? <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 13, color: proc.color }}>P{proc.id}</span>
+                  : <span style={{ color: status === 'correct' ? C.border : '#EF4444', fontSize: 14, fontWeight: 700 }}>—</span>
+                }
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Gabarito */}
+      <div style={{ display: 'flex', gap: 0, alignItems: 'center', overflowX: 'auto' }}>
+        <div style={{ minWidth: 80, fontSize: 12, color: C.textSub, flexShrink: 0, fontWeight: 600 }}>Gabarito</div>
+        {Array.from({ length: totalCycles }).map((_, i) => {
+          const c = correctSchedule[i] ?? null;
+          const proc = c != null ? getProcById(procs, c) : null;
+          return (
+            <div key={i} style={{ flexShrink: 0, marginRight: 2 }}>
+              <div style={{
+                width: CELL, height: CELL, borderRadius: 8,
+                background: proc ? proc.color + '18' : '#fafafa',
+                border: `2px solid ${proc ? proc.color : C.border}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {proc
+                  ? <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 13, color: proc.color }}>P{proc.id}</span>
+                  : <span style={{ color: C.border, fontSize: 18 }}>—</span>
+                }
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Feedback de erros ─────────────────────────────────────────────────────────
+function ErrorFeedback({ procs, totalCycles, userSchedule, correctSchedule, timeline, algo }) {
+  const errors = React.useMemo(() => {
+    const list = [];
+    for (let i = 0; i < totalCycles; i++) {
+      const u = userSchedule[i] ?? null;
+      const c = correctSchedule[i] ?? null;
+      if (u === c) continue;
+      const snap = timeline.find(s => s.cycle === i);
+      const note = snap ? snap.note : '';
+      let msg = '';
+      const uProc = u != null ? `P${u}` : '—';
+      const cProc = c != null ? `P${c}` : '—';
+
+      if (c == null) {
+        msg = `Nenhum processo deveria executar aqui (CPU ociosa), mas você colocou ${uProc}.`;
+      } else if (u == null) {
+        msg = `${cProc} deveria executar neste ciclo, mas você deixou vazio.`;
+      } else if (algo === 'fifo') {
+        const cArr = getProcById(procs, c)?.arrival ?? 0;
+        const uArr = getProcById(procs, u)?.arrival ?? 0;
+        msg = cArr < uArr
+          ? `FIFO: ${cProc} chegou no ciclo ${cArr}, antes de ${uProc} (ciclo ${uArr}). O primeiro a chegar executa primeiro.`
+          : `FIFO: ${cProc} já estava na fila. ${uProc} não é o próximo da ordem de chegada.`;
+      } else if (algo === 'sjf') {
+        const cBurst = getProcById(procs, c)?.burst ?? 0;
+        const uBurst = getProcById(procs, u)?.burst ?? 0;
+        msg = cBurst < uBurst
+          ? `SJF: ${cProc} tem burst ${cBurst} < burst de ${uProc} (${uBurst}). O menor burst deve ser escolhido.`
+          : `SJF: no ciclo ${i}, ${cProc} estava disponível com burst ${cBurst}. Verifique quais processos já chegaram.`;
+      } else if (algo === 'srtf') {
+        const cSnap = snap?.procs[c];
+        const uSnap = snap?.procs[u];
+        const cRem = cSnap?.remaining ?? '?';
+        const uRem = uSnap?.remaining ?? '?';
+        msg = note.includes('preemptado')
+          ? `SRTF: preempção aconteceu aqui. ${cProc} (restante=${cRem}) tem menos tempo que ${uProc} (restante=${uRem}).`
+          : `SRTF: ${cProc} tem ${cRem} ciclos restantes vs ${uProc} com ${uRem}. Sempre executa o menor restante.`;
+      } else if (algo === 'rr') {
+        msg = note.includes('quantum')
+          ? `Round Robin: o quantum de ${uProc} expirou. O processo vai para o FIM da fila — não fica na CPU.`
+          : `Round Robin: a fila FIFO determina que ${cProc} é o próximo. Verifique a ordem da fila de prontos.`;
+      }
+
+      list.push({ cycle: i, msg });
+    }
+    return list;
+  }, [procs, totalCycles, userSchedule, correctSchedule, timeline, algo]);
+
+  if (errors.length === 0) return null;
+
+  return (
+    <div style={{ ...card, borderColor: 'rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.03)' }}>
+      <div style={{ ...label, color: '#EF4444' }}>Erros encontrados ({errors.length})</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {errors.map(({ cycle, msg }) => (
+          <div key={cycle} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 13 }}>
+            <div style={{
+              fontFamily: "'JetBrains Mono', monospace", fontWeight: 700,
+              color: '#EF4444', flexShrink: 0, fontSize: 12,
+              background: 'rgba(239,68,68,0.1)', padding: '2px 8px', borderRadius: 4,
+            }}>t={cycle}</div>
+            <div style={{ color: C.textSub, lineHeight: 1.5 }}>{msg}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── App principal ─────────────────────────────────────────────────────────────
+function App() {
+  const algo = React.useMemo(() => getAlgoFromURL(), []);
+  const info = ALGO_INFO[algo];
+  const scenario = window.Scheduler.SCENARIOS[algo];
+  const procs = scenario.processes;
+  const quantum = scenario.quantum || 3;
+
+  const timeline = React.useMemo(() => {
+    return window.Scheduler[algo]({ processes: procs, quantum });
+  }, [algo]);
+
+  const correctSchedule = React.useMemo(() => buildCorrectSchedule(timeline), [timeline]);
+  const totalCycles = React.useMemo(() => getTotalCycles(timeline), [timeline]);
+
+  // Duração da animação de solução
+  const simDuration = React.useMemo(() => {
+    const maxCycle = Math.max(...timeline.map(e => e.cycle));
+    return 2.5 + (maxCycle + 1) * 2.2 + 3;
+  }, [timeline]);
+
+  const [phase, setPhase] = React.useState('challenge'); // 'challenge' | 'result' | 'solution'
+  const [userSchedule, setUserSchedule] = React.useState({});
+
+  const handleCellClick = (cycle, procId) => setUserSchedule(s => ({ ...s, [cycle]: procId }));
+  const handleFinalizar = () => setPhase('result');
+  const handleRetry = () => { setUserSchedule({}); setPhase('challenge'); };
+  const handleVerSolucao = () => setPhase('solution');
+
+  const filledCount = Object.values(userSchedule).filter(v => v != null).length;
+  const isPerfect = React.useMemo(() => {
+    if (phase !== 'result') return false;
+    for (let i = 0; i < totalCycles; i++) {
+      if ((userSchedule[i] ?? null) !== (correctSchedule[i] ?? null)) return false;
+    }
+    return true;
+  }, [phase, userSchedule, correctSchedule, totalCycles]);
+
+  return (
+    <>
+      {/* ── Overlay de solução (mesma página, cobre tudo) ────────────── */}
+      {phase === 'solution' && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: '#f4f4f5' }}>
+          {/* Stage preenche todo o overlay */}
+          <Stage
+            width={1920}
+            height={1080}
+            duration={simDuration}
+            background="#ffffff"
+            persistKey={`sim-${algo}-v1`}
+            loop={true}
+          >
+            <SimulationScene
+              timeline={timeline}
+              tweaks={TWEAKS}
+              procs={procs}
+              quantum={quantum}
+              algo={algo}
+            />
+          </Stage>
+
+          {/* Botão de voltar, flutuante acima do Stage */}
+          <button
+            onClick={() => setPhase('result')}
+            style={{
+              position: 'fixed', left: 20, bottom: 80,
+              background: 'rgba(255,255,255,0.92)',
+              color: '#18181b',
+              border: '1px solid rgba(0,0,0,0.12)',
+              borderRadius: 8, padding: '10px 18px',
+              fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 13,
+              cursor: 'pointer', zIndex: 1001,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            }}
+          >← Voltar ao resultado</button>
+        </div>
+      )}
+
+      {/* ── Conteúdo principal (challenge / result) ──────────────────── */}
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 20px 80px' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 28 }}>
+          <a href="index.html" style={{ fontSize: 13, color: C.textMuted, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+            ← Voltar
+          </a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 12, background: info.color,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 12, color: '#fff',
+            }}>{info.name}</div>
+            <div>
+              <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, color: C.text }}>
+                Desafio — {info.name}
+              </h1>
+              <p style={{ fontSize: 13, color: C.textMuted, marginTop: 3 }}>{info.fullName}</p>
+            </div>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+              {['challenge', 'result'].map(ph => (
+                <div key={ph} style={{
+                  width: 28, height: 4, borderRadius: 2,
+                  background: (phase === ph || (phase === 'solution' && ph === 'result')) ? info.color : C.border,
+                  transition: 'background 200ms',
+                }} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* FASE: DESAFIO */}
+        {phase === 'challenge' && (
+          <>
+            <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+              <ProcessTable procs={procs} algo={algo} />
+              <AlgoRules algo={algo} />
+            </div>
+
+            <div style={{ ...card, marginBottom: 24 }}>
+              <EditableGantt
+                procs={procs}
+                totalCycles={totalCycles}
+                userSchedule={userSchedule}
+                onCellClick={handleCellClick}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <button
+                onClick={handleFinalizar}
+                style={{
+                  background: info.color, color: '#fff',
+                  border: 'none', borderRadius: 10, padding: '13px 30px',
+                  fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15,
+                  cursor: 'pointer',
+                }}
+              >Finalizar →</button>
+              <span style={{ fontSize: 13, color: C.textMuted }}>
+                {filledCount} de {totalCycles} ciclos preenchidos
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* FASE: RESULTADO */}
+        {(phase === 'result' || phase === 'solution') && (
+          <>
+            {isPerfect ? (
+              <div style={{ ...card, borderColor: 'rgba(71,169,106,0.25)', background: 'rgba(71,169,106,0.06)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
+                <span style={{ fontSize: 28 }}>🎉</span>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: '#2E7D32' }}>Perfeito!</div>
+                  <div style={{ fontSize: 14, color: C.textSub, marginTop: 3 }}>Você montou o Gantt corretamente para {info.name}.</div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ ...card, borderColor: 'rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.04)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
+                <span style={{ fontSize: 28 }}>📋</span>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Resultado do Desafio</div>
+                  <div style={{ fontSize: 14, color: C.textSub, marginTop: 3 }}>Veja os erros abaixo e depois assista à solução correta animada.</div>
+                </div>
+              </div>
+            )}
+
+            <div style={{ ...card, marginBottom: 16 }}>
+              <ResultGantt procs={procs} totalCycles={totalCycles} userSchedule={userSchedule} correctSchedule={correctSchedule} />
+            </div>
+
+            {!isPerfect && (
+              <div style={{ marginBottom: 16 }}>
+                <ErrorFeedback procs={procs} totalCycles={totalCycles} userSchedule={userSchedule} correctSchedule={correctSchedule} timeline={timeline} algo={algo} />
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <button
+                onClick={handleVerSolucao}
+                style={{
+                  background: info.color, color: '#fff',
+                  border: 'none', borderRadius: 10, padding: '12px 24px',
+                  fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 14,
+                  cursor: 'pointer',
+                }}
+              >▶ Ver solução animada</button>
+              <button onClick={handleRetry} style={btnSecondary}>↺ Tentar novamente</button>
+              <a href="index.html" style={{ ...btnSecondary, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>← Menu</a>
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

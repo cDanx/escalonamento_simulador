@@ -433,7 +433,7 @@ function Stage({
         position: 'absolute', inset: 0,
         display: 'flex', flexDirection: 'column',
         alignItems: 'center',
-        background: '#0a0a0a',
+        background: '#f4f4f5',
         fontFamily: 'Inter, system-ui, sans-serif',
       }}
     >
@@ -454,7 +454,7 @@ function Stage({
             transform: `scale(${scale})`,
             transformOrigin: 'center',
             flexShrink: 0,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
             overflow: 'hidden',
           }}
         >
