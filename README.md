@@ -78,3 +78,24 @@ A navegação é dividida em dois módulos. Cada tópico do módulo conceitual s
 1. Clone o repositório:
 ```bash
    git clone https://github.com/cDanx/escalonamento_simulador
+   cd escalonamento_simulador
+```
+
+2. Inicie um servidor local (necessário — abrir o HTML direto não funciona):
+```bash
+   python -m http.server 8080
+```
+   Ou, no Windows, basta dar duplo-clique em `iniciar.bat`.
+
+3. Acesse `http://localhost:8080/index.html`.
+
+---
+
+## Documentação de Uso
+
+O guia completo de uso (para alunos e professores) está no **[Wiki do projeto](../../wiki)**:
+
+- **Como Executar** — colocar o OA no ar
+- **Guia do Aluno** — trilha teórica + simulador (O Jogo)
+- **Guia do Professor** — uso em sala de aula
+- **Solução de Problemas** — perguntas frequentes
