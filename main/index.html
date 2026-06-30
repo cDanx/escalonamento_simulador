@@ -275,35 +275,49 @@
     </a>
   </div>
 
+  <a class="card final-card" href="final.html" style="--accent: #18181b; margin-top: 20px;">
+    <div class="card-top">
+      <div class="card-badge" style="background: linear-gradient(135deg, #e91e8c, #4A7FE8);">★</div>
+      <div>
+        <div class="card-name">Fase Final</div>
+        <div class="card-fullname">Filas múltiplas com retroalimentação</div>
+      </div>
+    </div>
+    <hr class="divider">
+    <p class="card-desc">
+      Duas filas (A e B), prioridades dinâmicas e E/S. Monte o diagrama de Gantt completo
+      de uma questão real de prova e responda às perguntas de desempenho.
+    </p>
+    <div class="card-rules">
+      <div class="card-rule">Fila A (quantum 6) e Fila B (quantum 4), RR interno = 2</div>
+      <div class="card-rule">Processos io-bound retornam à Fila A após E/S</div>
+      <div class="card-rule">Calcule waiting time, turnaround e response time</div>
+    </div>
+    <span class="card-btn" style="background: linear-gradient(135deg, #e91e8c, #4A7FE8);">Encarar o desafio final →</span>
+  </a>
+
   <p class="footer-note">Após montar o Gantt, você vê onde errou e a solução correta animada.</p>
 </div>
+<script src="debug-panel.js"></script>
 <script>
 (function () {
-  var completed = localStorage.getItem('learn:completed') === 'true';
-  if (completed) return;
+  var ALGOS = ['fifo', 'sjf', 'srtf', 'rr'];
+  var theoryDone = localStorage.getItem('learn:completed') === 'true';
+  var perfectCount = ALGOS.filter(function (a) {
+    return localStorage.getItem('challenge:perfect:' + a) === 'true';
+  }).length;
+  var allPracticeDone = perfectCount === ALGOS.length;
 
-  // Atualiza o banner para mensagem de bloqueio
-  var banner = document.querySelector('[href="learn.html"]');
-  if (banner) {
-    banner.closest('div').querySelector('p').textContent =
-      'Para desbloquear os simuladores, complete primeiro a trilha de conteúdo teórico.';
-    banner.textContent = '📚 Iniciar trilha →';
-    banner.style.background = '#e91e8c';
-  }
-
-  // Bloqueia cada card de algoritmo
-  document.querySelectorAll('a.card').forEach(function (card) {
-    // Remove navegação
+  function lockCard(card, message) {
     card.removeAttribute('href');
     card.style.pointerEvents = 'none';
     card.style.userSelect = 'none';
 
-    // Overlay de bloqueio
     var overlay = document.createElement('div');
     overlay.style.cssText =
       'position:absolute;inset:0;border-radius:16px;' +
-      'background:rgba(244,244,245,0.82);backdrop-filter:blur(2px);' +
-      'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;';
+      'background:rgba(244,244,245,0.88);backdrop-filter:blur(2px);' +
+      'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:12px;';
 
     var icon = document.createElement('div');
     icon.style.cssText = 'font-size:28px;line-height:1;';
@@ -312,12 +326,35 @@
     var txt = document.createElement('div');
     txt.style.cssText =
       'font-size:12px;font-weight:700;color:#52525b;letter-spacing:0.04em;';
-    txt.textContent = 'Complete a trilha para desbloquear';
+    txt.textContent = message;
 
     overlay.appendChild(icon);
     overlay.appendChild(txt);
     card.appendChild(overlay);
-  });
+  }
+
+  if (!theoryDone) {
+    var banner = document.querySelector('[href="learn.html"]');
+    if (banner) {
+      banner.closest('div').querySelector('p').textContent =
+        'Para desbloquear os simuladores, complete primeiro a trilha de conteúdo teórico.';
+      banner.textContent = '📚 Iniciar trilha →';
+      banner.style.background = '#e91e8c';
+    }
+    document.querySelectorAll('a.card:not(.final-card)').forEach(function (card) {
+      lockCard(card, 'Complete a trilha para desbloquear');
+    });
+  }
+
+  if (!theoryDone || !allPracticeDone) {
+    var finalCard = document.querySelector('a.final-card');
+    if (finalCard) {
+      var msg = !theoryDone
+        ? 'Complete a trilha teórica e os 4 desafios (100%) para desbloquear'
+        : 'Acerte 100% nos 4 desafios para desbloquear (' + perfectCount + '/4 concluídos)';
+      lockCard(finalCard, msg);
+    }
+  }
 })();
 </script>
 </body>

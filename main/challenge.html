@@ -561,6 +561,26 @@ function App() {
     return true;
   }, [phase, userSchedule, correctSchedule, totalCycles]);
 
+  React.useEffect(() => {
+    if (isPerfect) {
+      try { localStorage.setItem('challenge:perfect:' + algo, 'true'); } catch {}
+    }
+  }, [isPerfect, algo]);
+
+  React.useEffect(() => {
+    window.__debugPanel = {
+      fillGabarito: function() {
+        setUserSchedule(Object.assign({}, correctSchedule));
+        setPhase('challenge');
+      },
+      fillAndSubmit: function() {
+        setUserSchedule(Object.assign({}, correctSchedule));
+        setPhase('result');
+      },
+    };
+    return function() { delete window.__debugPanel; };
+  }, [correctSchedule]);
+
   return (
     <>
       {/* ── Overlay de solução (mesma página, cobre tudo) ────────────── */}
@@ -720,5 +740,6 @@ function App() {
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
+<script src="debug-panel.js"></script>
 </body>
 </html>

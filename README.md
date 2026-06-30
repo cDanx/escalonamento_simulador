@@ -82,10 +82,14 @@ A navegação é dividida em dois módulos. Cada tópico do módulo conceitual s
 ```
 
 2. Inicie um servidor local (necessário — abrir o HTML direto não funciona):
+
+   **Windows:** duplo-clique em `iniciar.bat` na raiz do projeto.
+
+   **Linux/Mac:**
 ```bash
-   python -m http.server 8080
+   cd main
+   python3 -m http.server 8080
 ```
-   Ou, no Windows, basta dar duplo-clique em `iniciar.bat`.
 
 3. Acesse `http://localhost:8080/index.html`.
 

@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Fase Final — Filas Múltiplas com Retroalimentação</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; background: #f4f4f5; color: #18181b; font-family: 'Inter', system-ui, sans-serif; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="final-engine.js"></script>
+<script type="text/babel" src="animations.jsx"></script>
+<script type="text/babel" src="final-scene.jsx"></script>
+
+<script type="text/babel">
+
+const ENGINE = window.FinalEngine;
+const PROCS = ENGINE.PROCESSES;
+const DISPLAY_CYCLES = ENGINE.DISPLAY_CYCLES;
+const ALGOS = ['fifo', 'sjf', 'srtf', 'rr'];
+
+// ── Tema (consistente com o resto do site) ─────────────────────────────────────
+const C = {
+  bg: '#f4f4f5', surface: '#ffffff', border: '#e4e4e7',
+  text: '#18181b', textSub: '#52525b', textMuted: '#a1a1aa',
+};
+
+const card = {
+  background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14,
+  padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+};
+
+const label = {
+  fontSize: 11, fontWeight: 700, letterSpacing: '0.14em',
+  textTransform: 'uppercase', color: C.textMuted, marginBottom: 10,
+};
+
+const btnPrimary = {
+  background: '#18181b', color: '#fff', border: 'none', borderRadius: 10,
+  padding: '13px 28px', fontFamily: "'Inter', sans-serif", fontWeight: 700,
+  fontSize: 15, cursor: 'pointer',
+};
+
+const btnSecondary = {
+  background: C.surface, color: C.textSub, border: `1px solid ${C.border}`,
+  borderRadius: 10, padding: '12px 22px', fontFamily: "'Inter', sans-serif",
+  fontWeight: 600, fontSize: 14, cursor: 'pointer',
+};
+
+// ── Estados do diagrama ─────────────────────────────────────────────────────────
+const CYCLE_ORDER = ['.', 'E', 'A', 'B', 'X'];
+
+const STATE_INFO = {
+  '.': { label: 'Inativo',    short: 'Inativo',    bg: '#f4f4f5', text: '#a1a1aa', border: '#d4d4d8' },
+  E:   { label: 'Executando', short: 'Executando na CPU', bg: '#dcfce7', text: '#15803d', border: '#4ade80' },
+  A:   { label: 'Fila A',     short: 'Aguardando na Fila A', bg: '#dbeafe', text: '#1d4ed8', border: '#60a5fa' },
+  B:   { label: 'Fila B',     short: 'Aguardando na Fila B', bg: '#ede9fe', text: '#6d28d9', border: '#a78bfa' },
+  X:   { label: 'Bloqueado',  short: 'Bloqueado em E/S', bg: '#fee2e2', text: '#b91c1c', border: '#f87171' },
+};
+
+function nextState(s) {
+  const i = CYCLE_ORDER.indexOf(s);
+  return CYCLE_ORDER[(i + 1) % CYCLE_ORDER.length];
+}
+
+function emptyDiagram() {
+  const d = {};
+  PROCS.forEach(p => { d[p.id] = Array.from({ length: DISPLAY_CYCLES }, () => '.'); });
+  return d;
+}
+
+// ── Persistência local ───────────────────────────────────────────────────────────
+const STORAGE_KEY = 'final:state:v1';
+function loadState() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (!s) return null;
+    return JSON.parse(s);
+  } catch { return null; }
+}
+function saveState(state) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+
+function isUnlocked() {
+  const theoryDone = localStorage.getItem('learn:completed') === 'true';
+  const practiceDone = ALGOS.every(a => localStorage.getItem('challenge:perfect:' + a) === 'true');
+  return theoryDone && practiceDone;
+}
+
+// ── Enunciado ─────────────────────────────────────────────────────────────────
+const ENUNCIADO = `Em um sistema operacional, o escalonador utiliza duas filas (A e B) com a política de prioridades dinâmicas e retroalimentação. O algoritmo de escalonamento entre as filas é o de fatia de tempo. O quantum para as filas são 6 e 4 respectivamente. Todos os processos criados são inicialmente colocados na Fila A. Nas filas utiliza-se round-robin com quantum fixo de 2 ciclos. Os processos que consomem todo o quantum são preemptados e colocados na Fila B. Processos que retornam de E/S ou que são interrompidos pela preempção da fila são colocados na Fila A. Os processos P2, P3 e P5 são io-bound e P1 e P4 são cpu-bound. Todos os processos io-bound permanecem 3 ciclos de CPU na fila de bloqueados.`;
+
+function formatIO(p) {
+  if (p.type === 'cpu-bound') return '—';
+  return 'Após ciclos ' + p.ioAfterCycles.join(', ');
+}
+
+// ── Enunciado colapsável ──────────────────────────────────────────────────────
+function EnunciadoPanel() {
+  const [open, setOpen] = React.useState(true);
+  return (
+    <div style={{ ...card, marginBottom: 20 }}>
+      <div
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+        onClick={() => setOpen(o => !o)}
+      >
+        <div style={label}>Enunciado</div>
+        <span style={{ fontSize: 13, color: C.textMuted, fontWeight: 600 }}>{open ? 'Recolher ▲' : 'Expandir ▼'}</span>
+      </div>
+      {open && <p style={{ fontSize: 14, color: C.textSub, lineHeight: 1.65, marginTop: 4 }}>{ENUNCIADO}</p>}
+    </div>
+  );
+}
+
+// ── Legenda ───────────────────────────────────────────────────────────────────
+function Legenda() {
+  return (
+    <div style={{ ...card, marginBottom: 20, display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ ...label, marginBottom: 0 }}>Legenda</div>
+      {CYCLE_ORDER.map(s => (
+        <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{
+            width: 22, height: 22, borderRadius: 6, background: STATE_INFO[s].bg,
+            border: `1.5px solid ${STATE_INFO[s].border}`, color: STATE_INFO[s].text,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 12,
+          }}>{s}</div>
+          <span style={{ fontSize: 12, color: C.textSub }}>{STATE_INFO[s].label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Painel de processos ───────────────────────────────────────────────────────
+function ProcessInfoPanel() {
+  return (
+    <div style={{ ...card, marginBottom: 20 }}>
+      <div style={label}>Dados dos Processos</div>
+      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+        {PROCS.map(p => (
+          <div key={p.id} style={{
+            border: `1px solid ${C.border}`, borderRadius: 10, padding: '10px 14px',
+            minWidth: 170, flex: '1 1 170px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{
+                fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 13,
+                background: p.type === 'cpu-bound' ? '#1d4ed8' : '#b91c1c', color: '#fff',
+                borderRadius: 6, padding: '2px 8px',
+              }}>{p.id}</span>
+              <span style={{ fontSize: 11, color: C.textMuted, fontWeight: 600 }}>
+                {p.type === 'cpu-bound' ? 'CPU-bound' : 'IO-bound'}
+              </span>
+            </div>
+            <div style={{ fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>
+              {p.totalCycles} ciclos | chegada: {p.arrival}<br />
+              E/S: {formatIO(p)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Toolbar de estados ────────────────────────────────────────────────────────
+function StateToolbar({ pen, setPen, onClear, disabled }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      <span style={{ fontSize: 12, color: C.textMuted, fontWeight: 600, marginRight: 2 }}>Caneta:</span>
+      <button
+        onClick={() => setPen(null)}
+        title="Clique simples cicla o estado da célula"
+        style={{
+          background: pen === null ? '#18181b' : '#fff', color: pen === null ? '#fff' : C.textSub,
+          border: `2px solid ${pen === null ? '#18181b' : C.border}`, borderRadius: 8,
+          padding: '8px 14px', fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 12, cursor: 'pointer',
+        }}
+      >↻ Ciclar</button>
+      {CYCLE_ORDER.map(s => (
+        <button
+          key={s}
+          onClick={() => setPen(s)}
+          title={STATE_INFO[s].short}
+          style={{
+            minWidth: 44, minHeight: 44, background: pen === s ? STATE_INFO[s].bg : '#fff',
+            color: STATE_INFO[s].text, border: `2px solid ${pen === s ? STATE_INFO[s].border : C.border}`,
+            borderRadius: 8, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 15,
+            cursor: 'pointer',
+          }}
+        >{s}</button>
+      ))}
+      <span style={{ width: 1, height: 24, background: C.border, margin: '0 4px' }} />
+      <button onClick={onClear} disabled={disabled} style={{ ...btnSecondary, padding: '8px 16px', fontSize: 12, opacity: disabled ? 0.5 : 1 }}>
+        🗑 Limpar diagrama
+      </button>
+    </div>
+  );
+}
+
+// ── Grade do Gantt (editável ou somente leitura) ──────────────────────────────
+function GanttGrid({ diagram, onCellAction, readOnly, correctDiagram, showDiff, highlightCycle }) {
+  const CELL = 32;
+  const painting = React.useRef(false);
+
+  React.useEffect(() => {
+    if (readOnly) return;
+    const up = () => { painting.current = false; };
+    window.addEventListener('mouseup', up);
+    return () => window.removeEventListener('mouseup', up);
+  }, [readOnly]);
+
+  return (
+    <div style={{ overflowX: 'auto', paddingBottom: 6 }}>
+      <div style={{ minWidth: 56 + DISPLAY_CYCLES * CELL, position: 'relative' }}>
+        {/* Header de ciclos */}
+        <div style={{ display: 'flex', marginBottom: 4 }}>
+          <div style={{ width: 40, flexShrink: 0 }} />
+          {Array.from({ length: DISPLAY_CYCLES }).map((_, i) => (
+            <div key={i} style={{
+              width: CELL, flexShrink: 0, textAlign: 'center',
+              fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: C.textMuted,
+              fontWeight: highlightCycle === i ? 800 : 400,
+              background: highlightCycle === i ? '#fef3c7' : 'transparent',
+            }}>{i}</div>
+          ))}
+        </div>
+
+        {PROCS.map(p => (
+          <div key={p.id} style={{ display: 'flex', marginBottom: 2 }}>
+            <div style={{
+              width: 40, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: '#1a1a1a', color: '#f0f0f0', fontWeight: 700, fontSize: 12,
+              fontFamily: "'JetBrains Mono', monospace", borderRadius: 4, marginRight: 2,
+            }}>{p.id}</div>
+            {Array.from({ length: DISPLAY_CYCLES }).map((_, i) => {
+              const locked = i < p.arrival;
+              const state = locked ? '.' : diagram[p.id][i];
+              const info = STATE_INFO[state];
+              let cellBg = info.bg, cellBorder = info.border;
+
+              if (showDiff && correctDiagram && !locked) {
+                const correct = correctDiagram[p.id][i];
+                if (state === correct) {
+                  cellBorder = '#22c55e';
+                } else {
+                  cellBorder = '#ef4444';
+                  cellBg = '#fef2f2';
+                }
+              }
+
+              return (
+                <div
+                  key={i}
+                  role={readOnly ? undefined : 'button'}
+                  tabIndex={readOnly || locked ? -1 : 0}
+                  aria-label={`${p.id} ciclo ${i}: ${STATE_INFO[state].label}`}
+                  onMouseDown={() => {
+                    if (readOnly || locked) return;
+                    painting.current = true;
+                    onCellAction(p.id, i, state);
+                  }}
+                  onMouseEnter={() => {
+                    if (readOnly || locked || !painting.current) return;
+                    onCellAction(p.id, i, state);
+                  }}
+                  onKeyDown={(e) => {
+                    if (readOnly || locked) return;
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCellAction(p.id, i, state); }
+                  }}
+                  style={{
+                    width: CELL, height: CELL, flexShrink: 0, marginRight: 2,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: locked ? '#fafafa' : cellBg,
+                    border: `1.5px solid ${locked ? '#e4e4e7' : cellBorder}`,
+                    borderRadius: 5,
+                    color: locked ? '#d4d4d8' : info.text,
+                    fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 12,
+                    cursor: (readOnly || locked) ? 'default' : 'pointer',
+                    userSelect: 'none',
+                  }}
+                >{locked ? '·' : state}</div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Perguntas ─────────────────────────────────────────────────────────────────
+function QuestionsPanel({ answers, setAnswers, disabled }) {
+  const fields = [
+    { key: 'a', text: '(a) Qual o tempo médio de espera pela CPU (waiting time)?', type: 'number' },
+    { key: 'b', text: '(b) Qual o processo com o menor tempo de execução (turnaround time)?', type: 'select' },
+    { key: 'c', text: '(c) Qual o processo apresentou o pior tempo de resposta (response time)?', type: 'select' },
+  ];
+
+  return (
+    <div style={{ ...card, marginBottom: 20 }}>
+      <div style={label}>Perguntas</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {fields.map(f => (
+          <div key={f.key}>
+            <label style={{ fontSize: 14, color: C.text, display: 'block', marginBottom: 6 }}>{f.text}</label>
+            {f.type === 'number' ? (
+              <input
+                type="number" step="0.1" min="0" placeholder="ex: 7.2"
+                value={answers[f.key] ?? ''}
+                disabled={disabled}
+                onChange={e => setAnswers(a => ({ ...a, [f.key]: e.target.value }))}
+                style={{
+                  border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 12px',
+                  fontFamily: "'JetBrains Mono', monospace", fontSize: 14, width: 140,
+                }}
+              />
+            ) : (
+              <select
+                value={answers[f.key] ?? ''}
+                disabled={disabled}
+                onChange={e => setAnswers(a => ({ ...a, [f.key]: e.target.value }))}
+                style={{
+                  border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 12px',
+                  fontFamily: "'JetBrains Mono', monospace", fontSize: 14, width: 140,
+                }}
+              >
+                <option value="">Selecione...</option>
+                {PROCS.map(p => <option key={p.id} value={p.id}>{p.id}</option>)}
+              </select>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Painel de filas (modo passo a passo) ──────────────────────────────────────
+function QueuePanel({ snapshot, cycle }) {
+  if (!snapshot) return null;
+  return (
+    <div style={{ ...card, minWidth: 220 }}>
+      <div style={label}>Ciclo {cycle}</div>
+      <div style={{ fontSize: 13, color: C.textSub, lineHeight: 2 }}>
+        <div><b>CPU:</b> {snapshot.running ?? '— ociosa —'}</div>
+        <div><b>Fila A:</b> [{snapshot.queueA.join(', ')}]</div>
+        <div><b>Fila B:</b> [{snapshot.queueB.join(', ')}]</div>
+        <div><b>Bloqueados:</b> {snapshot.blocked.length
+          ? snapshot.blocked.map(b => `${b.id}→sai no ${b.blockedUntil}`).join(', ')
+          : '—'}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Modo passo a passo ─────────────────────────────────────────────────────────
+function StepByStepViewer({ engineResult, onExit }) {
+  const [idx, setIdx] = React.useState(-1);
+
+  const partialDiagram = React.useMemo(() => {
+    const d = emptyDiagram();
+    PROCS.forEach(p => {
+      for (let i = 0; i <= idx; i++) d[p.id][i] = engineResult.gantt[p.id][i];
+    });
+    return d;
+  }, [idx]);
+
+  const snapshot = idx >= 0 ? engineResult.snapshots[idx] : null;
+
+  return (
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px 80px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 800 }}>▶ Simulação Passo a Passo</h2>
+        <button onClick={onExit} style={btnSecondary}>← Voltar</button>
+      </div>
+
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <div style={{ ...card, flex: '1 1 600px' }}>
+          <GanttGrid diagram={partialDiagram} readOnly highlightCycle={idx} />
+        </div>
+        <QueuePanel snapshot={snapshot} cycle={idx} />
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, marginTop: 20, flexWrap: 'wrap' }}>
+        <button style={btnSecondary} onClick={() => setIdx(-1)}>⏮ Início</button>
+        <button style={btnSecondary} onClick={() => setIdx(i => Math.max(-1, i - 1))}>◀ Anterior</button>
+        <button style={btnSecondary} onClick={() => setIdx(i => Math.min(DISPLAY_CYCLES - 1, i + 1))}>▶ Próximo</button>
+        <button style={btnSecondary} onClick={() => setIdx(i => Math.min(DISPLAY_CYCLES - 1, i + 5))}>▶▶ Avançar 5</button>
+        <button style={btnSecondary} onClick={() => setIdx(DISPLAY_CYCLES - 1)}>⏭ Ir ao final</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Resultado ─────────────────────────────────────────────────────────────────
+function ResultPanel({ diagram, answers, engineResult, hintsUsed, onRetry, onViewGabarito, showGabarito, onViewAnimation }) {
+  const correctDiagram = engineResult.gantt;
+  const metrics = engineResult.metrics;
+
+  const stats = React.useMemo(() => {
+    let correct = 0, total = 0;
+    PROCS.forEach(p => {
+      for (let i = p.arrival; i < DISPLAY_CYCLES; i++) {
+        total++;
+        if (diagram[p.id][i] === correctDiagram[p.id][i]) correct++;
+      }
+    });
+    return { correct, total };
+  }, [diagram]);
+
+  const rawPct = stats.total ? (stats.correct / stats.total) * 100 : 0;
+  const finalPct = Math.max(0, rawPct - hintsUsed * 5);
+
+  const answerResult = {
+    a: {
+      correctValue: metrics.avgWaitingTime.toFixed(1),
+      correct: Math.abs(parseFloat(answers.a) - metrics.avgWaitingTime) < 0.15,
+    },
+    b: { correctValue: metrics.bestTurnaroundProcess, correct: answers.b === metrics.bestTurnaroundProcess },
+    c: { correctValue: metrics.worstResponseProcess, correct: answers.c === metrics.worstResponseProcess },
+  };
+
+  return (
+    <div>
+      <div style={{ ...card, marginBottom: 20 }}>
+        <div style={label}>Resultado do Diagrama</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+          <div style={{ fontSize: 30, fontWeight: 800, color: finalPct >= 90 ? '#15803d' : finalPct >= 60 ? '#b45309' : '#b91c1c' }}>
+            {finalPct.toFixed(0)}%
+          </div>
+          <div style={{ flex: 1, height: 10, background: '#e4e4e7', borderRadius: 6, overflow: 'hidden' }}>
+            <div style={{ width: `${finalPct}%`, height: '100%', background: finalPct >= 90 ? '#22c55e' : finalPct >= 60 ? '#f59e0b' : '#ef4444' }} />
+          </div>
+        </div>
+        <div style={{ fontSize: 12, color: C.textMuted }}>
+          {stats.correct}/{stats.total} células corretas
+          {hintsUsed > 0 && ` · −${hintsUsed * 5}% por ${hintsUsed} dica(s) usada(s)`}
+        </div>
+      </div>
+
+      <div style={{ ...card, marginBottom: 20 }}>
+        <div style={label}>Perguntas</div>
+        {[
+          { k: 'a', text: '(a) Tempo médio de espera' },
+          { k: 'b', text: '(b) Menor turnaround' },
+          { k: 'c', text: '(c) Pior response time' },
+        ].map(f => (
+          <div key={f.k} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: `1px solid ${C.border}`, fontSize: 14 }}>
+            <span>{f.text}</span>
+            <span style={{ color: answerResult[f.k].correct ? '#15803d' : '#b91c1c', fontWeight: 700 }}>
+              Sua resposta: {answers[f.k] || '—'} &nbsp; Correto: {answerResult[f.k].correctValue} &nbsp;
+              {answerResult[f.k].correct ? '✅' : '❌'}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ ...card, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <div style={{ ...label, marginBottom: 0 }}>{showGabarito ? 'Gabarito (correto)' : 'Seu Diagrama'}</div>
+          <button style={btnSecondary} onClick={onViewGabarito}>
+            {showGabarito ? '↺ Ver meu diagrama' : '📖 Ver gabarito completo'}
+          </button>
+        </div>
+        <GanttGrid
+          diagram={showGabarito ? correctDiagram : diagram}
+          readOnly
+          correctDiagram={correctDiagram}
+          showDiff={!showGabarito}
+        />
+      </div>
+
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <button
+          onClick={onViewAnimation}
+          style={{
+            background: 'linear-gradient(135deg,#e91e8c,#4A7FE8)', color: '#fff',
+            border: 'none', borderRadius: 10, padding: '13px 28px',
+            fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15, cursor: 'pointer',
+          }}
+        >▶ Ver solução animada</button>
+        <button onClick={onRetry} style={btnSecondary}>↺ Tentar novamente</button>
+        <a href="index.html" style={{ ...btnSecondary, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>← Menu</a>
+      </div>
+    </div>
+  );
+}
+
+// ── Bloqueio (acesso direto sem pré-requisitos) ───────────────────────────────
+function LockedScreen() {
+  const practiceDone = ALGOS.map(a => ({ a, ok: localStorage.getItem('challenge:perfect:' + a) === 'true' }));
+  const theoryDone = localStorage.getItem('learn:completed') === 'true';
+  return (
+    <div style={{ maxWidth: 560, margin: '0 auto', padding: '80px 24px', textAlign: 'center' }}>
+      <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
+      <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 10 }}>Fase Final bloqueada</h1>
+      <p style={{ fontSize: 14, color: C.textSub, marginBottom: 24, lineHeight: 1.6 }}>
+        Complete a trilha teórica e acerte 100% nos 4 desafios práticos para desbloquear esta fase.
+      </p>
+      <div style={{ ...card, textAlign: 'left', marginBottom: 24 }}>
+        <div style={{ fontSize: 13, marginBottom: 8 }}>{theoryDone ? '✅' : '⬜'} Trilha teórica</div>
+        {practiceDone.map(({ a, ok }) => (
+          <div key={a} style={{ fontSize: 13, marginBottom: 4 }}>{ok ? '✅' : '⬜'} Desafio {a.toUpperCase()}</div>
+        ))}
+      </div>
+      <a href="index.html" style={{ ...btnPrimary, textDecoration: 'none', display: 'inline-flex' }}>← Voltar ao menu</a>
+    </div>
+  );
+}
+
+// ── App principal ─────────────────────────────────────────────────────────────
+function App() {
+  const engineResult = React.useMemo(() => ENGINE.simulate(), []);
+  const saved = React.useMemo(() => loadState(), []);
+
+  const [diagram, setDiagram] = React.useState(saved?.diagram || emptyDiagram());
+  const [answers, setAnswers] = React.useState(saved?.answers || { a: '', b: '', c: '' });
+  const [hintsUsed, setHintsUsed] = React.useState(saved?.hintsUsed || 0);
+  const [pen, setPen] = React.useState(null);
+  const [mode, setMode] = React.useState('edit'); // 'edit' | 'step' | 'result'
+  const [showGabarito, setShowGabarito] = React.useState(false);
+  const [hintTarget, setHintTarget] = React.useState({ proc: 'P1', cycle: 0 });
+
+  React.useEffect(() => {
+    if (mode === 'result') return;
+    saveState({ diagram, answers, hintsUsed });
+  }, [diagram, answers, hintsUsed, mode]);
+
+  React.useEffect(() => {
+    window.__debugPanel = {
+      fillGabarito: function() {
+        const gantt = engineResult.gantt;
+        const d = {};
+        Object.keys(gantt).forEach(function(k) { d[k] = gantt[k].slice(); });
+        setDiagram(d);
+        setAnswers({
+          a: engineResult.metrics.avgWaitingTime.toFixed(1),
+          b: engineResult.metrics.bestTurnaroundProcess,
+          c: engineResult.metrics.worstResponseProcess,
+        });
+        setMode('edit');
+      },
+      fillAndSubmit: function() {
+        const gantt = engineResult.gantt;
+        const d = {};
+        Object.keys(gantt).forEach(function(k) { d[k] = gantt[k].slice(); });
+        setDiagram(d);
+        setAnswers({
+          a: engineResult.metrics.avgWaitingTime.toFixed(1),
+          b: engineResult.metrics.bestTurnaroundProcess,
+          c: engineResult.metrics.worstResponseProcess,
+        });
+        setMode('result');
+      },
+    };
+    return function() { delete window.__debugPanel; };
+  }, [engineResult]);
+
+  const handleCellAction = (procId, cycle, currentState) => {
+    setDiagram(d => {
+      const next = { ...d, [procId]: d[procId].slice() };
+      next[procId][cycle] = pen != null ? pen : nextState(currentState);
+      return next;
+    });
+  };
+
+  const handleClear = () => {
+    if (!window.confirm('Limpar todo o diagrama preenchido?')) return;
+    setDiagram(emptyDiagram());
+  };
+
+  const handleHint = () => {
+    if (hintsUsed >= 3) return;
+    const { proc, cycle } = hintTarget;
+    const p = PROCS.find(x => x.id === proc);
+    if (cycle < p.arrival) { alert(`${proc} ainda não chegou no ciclo ${cycle}.`); return; }
+    setDiagram(d => {
+      const next = { ...d, [proc]: d[proc].slice() };
+      next[proc][cycle] = engineResult.gantt[proc][cycle];
+      return next;
+    });
+    setHintsUsed(h => h + 1);
+  };
+
+  const handleVerificar = () => { setShowGabarito(false); setMode('result'); };
+  const handleRetry = () => {
+    setDiagram(emptyDiagram());
+    setAnswers({ a: '', b: '', c: '' });
+    setHintsUsed(0);
+    setShowGabarito(false);
+    setMode('edit');
+  };
+
+  const simDuration = window.FINAL_INTRO_DUR + DISPLAY_CYCLES * window.FINAL_CYCLE_DUR + 3;
+
+  if (!isUnlocked()) return <LockedScreen />;
+
+  if (mode === 'animation') {
+    return (
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: '#f4f4f5' }}>
+        <Stage
+          width={1920}
+          height={1080}
+          duration={simDuration}
+          background="#ffffff"
+          persistKey="final-sim-v1"
+          loop={true}
+        >
+          <FinalSimulationScene engineResult={engineResult} />
+        </Stage>
+        <button
+          onClick={() => setMode('result')}
+          style={{
+            position: 'fixed', left: 20, bottom: 80,
+            background: 'rgba(255,255,255,0.92)', color: '#18181b',
+            border: '1px solid rgba(0,0,0,0.12)', borderRadius: 8,
+            padding: '10px 18px', fontFamily: "'Inter', sans-serif",
+            fontWeight: 600, fontSize: 13, cursor: 'pointer',
+            zIndex: 1001, boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          }}
+        >← Voltar ao resultado</button>
+      </div>
+    );
+  }
+
+  if (mode === 'step') {
+    return <StepByStepViewer engineResult={engineResult} onExit={() => setMode('edit')} />;
+  }
+
+  const filledCount = PROCS.reduce((sum, p) => {
+    return sum + diagram[p.id].slice(p.arrival).filter(s => s !== '.').length;
+  }, 0);
+
+  return (
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px 80px' }}>
+      <div style={{ marginBottom: 24 }}>
+        <a href="index.html" style={{ fontSize: 13, color: C.textMuted, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+          ← Voltar
+        </a>
+        <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em' }}>
+          🏆 Fase Final — Filas Múltiplas com Retroalimentação
+        </h1>
+        <p style={{ fontSize: 13, color: C.textMuted, marginTop: 4 }}>
+          Duas filas (A e B), prioridades dinâmicas, quantum 6/4, RR interno = 2 ciclos.
+        </p>
+      </div>
+
+      {mode === 'edit' && (
+        <>
+          <EnunciadoPanel />
+          <Legenda />
+          <ProcessInfoPanel />
+
+          <div style={{ ...card, marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <div style={label}>Diagrama de Gantt</div>
+              <button style={btnSecondary} onClick={() => setMode('step')}>▶ Simular passo a passo</button>
+            </div>
+
+            <StateToolbar
+              pen={pen} setPen={setPen}
+              onClear={handleClear}
+              disabled={false}
+            />
+
+            {/* Seletor de dica */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontSize: 13, color: C.textSub, flexWrap: 'wrap' }}>
+              <span>💡 Dica para:</span>
+              <select value={hintTarget.proc} onChange={e => setHintTarget(t => ({ ...t, proc: e.target.value }))}
+                style={{ border: `1px solid ${C.border}`, borderRadius: 6, padding: '4px 8px', fontFamily: "'JetBrains Mono', monospace" }}>
+                {PROCS.map(p => <option key={p.id} value={p.id}>{p.id}</option>)}
+              </select>
+              <span>ciclo</span>
+              <input type="number" min="0" max={DISPLAY_CYCLES - 1} value={hintTarget.cycle}
+                onChange={e => setHintTarget(t => ({ ...t, cycle: parseInt(e.target.value, 10) || 0 }))}
+                style={{ border: `1px solid ${C.border}`, borderRadius: 6, padding: '4px 8px', width: 60, fontFamily: "'JetBrains Mono', monospace" }} />
+              <button onClick={handleHint} disabled={hintsUsed >= 3} style={{ ...btnSecondary, padding: '6px 12px', fontSize: 12, opacity: hintsUsed >= 3 ? 0.5 : 1 }}>
+                Revelar célula (−5%) · {3 - hintsUsed} restante(s)
+              </button>
+            </div>
+
+            <GanttGrid diagram={diagram} onCellAction={handleCellAction} />
+          </div>
+
+          <QuestionsPanel answers={answers} setAnswers={setAnswers} disabled={false} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button onClick={handleVerificar} style={btnPrimary}>Verificar →</button>
+            <span style={{ fontSize: 13, color: C.textMuted }}>{filledCount} células preenchidas</span>
+          </div>
+        </>
+      )}
+
+      {mode === 'result' && (
+        <ResultPanel
+          diagram={diagram}
+          answers={answers}
+          engineResult={engineResult}
+          hintsUsed={hintsUsed}
+          onRetry={handleRetry}
+          onViewGabarito={() => setShowGabarito(s => !s)}
+          showGabarito={showGabarito}
+          onViewAnimation={() => setMode('animation')}
+        />
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<script src="debug-panel.js"></script>
+</body>
+</html>
