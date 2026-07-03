@@ -68,12 +68,12 @@
         continue;
       }
 
-      // 1. CHEGADAS
+      // 1. CHEGADAS → Fila A
       processes.forEach(function (p) {
-        if (p.arrival === t) queueA.push(p.id);
+        if (p.arrival === t) { queueA.push(p.id); runtime[p.id].currentQueue = 'A'; }
       });
 
-      // 2. DESBLOQUEIOS
+      // 2. DESBLOQUEIOS (retorno de E/S) → Fila A
       processes.forEach(function (p) {
         var rt = runtime[p.id];
         if (rt.blockedUntil === t) {
@@ -84,19 +84,29 @@
         }
       });
 
-      // 2.5 — reentrada do processo preemptado no ciclo anterior (menor prioridade)
+      // 2.5 — reentrada do processo que consumiu o quantum no ciclo anterior → Fila B
       if (pendingRequeue) {
-        (pendingRequeue.queue === 'A' ? queueA : queueB).push(pendingRequeue.id);
+        queueB.push(pendingRequeue.id);
+        runtime[pendingRequeue.id].currentQueue = 'B';
         pendingRequeue = null;
       }
 
-      // 3. DECIDE QUEM EXECUTA (Fila A tem prioridade sobre Fila B)
+      // 3. PREEMPÇÃO DE FILA: um processo da Fila B em execução é interrompido
+      //    se houver processo na Fila A (prioridade) e volta para a Fila A.
+      if (runner && runner.queue === 'B' && queueA.length) {
+        queueA.push(runner.id);
+        runtime[runner.id].currentQueue = 'A';
+        runner = null;
+      }
+
+      // 4. DECIDE QUEM EXECUTA (Fila A tem prioridade sobre a Fila B)
       if (runner == null) {
         if (queueA.length) {
           runner = { id: queueA.shift(), queue: 'A', burstLeft: config.quantumInternal };
         } else if (queueB.length) {
           runner = { id: queueB.shift(), queue: 'B', burstLeft: config.quantumInternal };
         }
+        if (runner) runtime[runner.id].currentQueue = runner.queue;
       }
 
       // Registra estado deste ciclo para todos os processos (com base nas filas/bloqueados atuais)
@@ -109,7 +119,7 @@
           symbol = '.';
         } else if (rt.finished && t >= rt.finishCycle) {
           symbol = '.';
-        } else if (rt.blockedSince != null && t >= rt.blockedSince && t < rt.blockedUntil) {
+        } else if (rt.blockedUntil != null && t < rt.blockedUntil) {
           symbol = 'X';
         } else if (queueA.indexOf(p.id) !== -1) {
           symbol = 'A';
@@ -128,7 +138,7 @@
         queueA: queueA.slice(),
         queueB: queueB.slice(),
         blocked: processes
-          .filter(function (p) { return runtime[p.id].blockedSince != null; })
+          .filter(function (p) { return runtime[p.id].blockedUntil != null; })
           .map(function (p) { return { id: p.id, blockedUntil: runtime[p.id].blockedUntil }; }),
       });
 
@@ -136,52 +146,35 @@
 
       var proc = byId[runner.id];
       var rt = runtime[runner.id];
-      rt.currentQueue = runner.queue;
 
-      // 4. EXECUTA 1 ciclo
+      // 5. EXECUTA 1 ciclo
       rt.cyclesExecuted += 1;
-      rt.cyclesInCurrentQueueSlot += 1;
       if (rt.firstRunCycle == null) rt.firstRunCycle = t;
+      runner.burstLeft -= 1;
 
-      var consumed = false;
-
-      // 5. VERIFICA E/S
+      // 6. VERIFICA E/S — vai para bloqueado e retornará à Fila A
       if (proc.ioAfterCycles[rt.ioCount] === rt.cyclesExecuted) {
         rt.blockedSince = t + 1;
         rt.blockedUntil = t + 1 + config.ioBlockDuration;
         rt.ioCount += 1;
-        rt.cyclesInCurrentQueueSlot = 0;
         rt.currentQueue = null;
         runner = null;
-        consumed = true;
       }
-
-      // 6. VERIFICA TÉRMINO
-      if (!consumed && rt.cyclesExecuted === proc.totalCycles) {
+      // 7. VERIFICA TÉRMINO
+      else if (rt.cyclesExecuted === proc.totalCycles) {
         rt.finished = true;
         rt.finishCycle = t + 1;
+        rt.currentQueue = null;
         runner = null;
-        consumed = true;
         finishedCount++;
       }
-
-      if (!consumed) {
-        runner.burstLeft -= 1;
-
-        // 7. QUANTUM INTERNO (RR = 2 ciclos)
-        if (runner.burstLeft === 0) {
-          // 8. QUANTUM DE FILA
-          var maxSlot = runner.queue === 'A' ? config.quantumQueueA : config.quantumQueueB;
-          if (rt.cyclesInCurrentQueueSlot >= maxSlot) {
-            rt.cyclesInCurrentQueueSlot = 0;
-            pendingRequeue = { id: proc.id, queue: 'B' };
-          } else {
-            pendingRequeue = { id: proc.id, queue: runner.queue };
-          }
-          runner = null;
-        }
-        // senão: processo continua executando no próximo ciclo (mesmo "runner")
+      // 8. CONSUMIU TODO O QUANTUM RR (2 ciclos) sem bloquear/terminar → Fila B
+      else if (runner.burstLeft === 0) {
+        pendingRequeue = { id: proc.id, queue: 'B' };
+        rt.currentQueue = 'B';
+        runner = null;
       }
+      // senão: processo continua executando no próximo ciclo (mesmo "runner")
     }
 
     var ganttDisplay = {};
