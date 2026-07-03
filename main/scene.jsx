@@ -24,10 +24,10 @@ const MODAL_X_START = 40;
 
 const MODALS = [
   { key: 'new',        title: 'NOVO',        subtitle: 'Recém-criado',        hint: 'Processo acabou de chegar ao sistema' },
-  { key: 'ready',      title: 'PRONTO',      subtitle: 'Aguardando CPU',      hint: 'Fila de prontos — próximo a executar' },
+  { key: 'ready',      title: 'APTO',      subtitle: 'Aguardando CPU',      hint: 'Fila de aptos — próximo a executar' },
   { key: 'running',    title: 'EXECUTANDO',  subtitle: 'Na CPU',              hint: 'Usando a CPU neste ciclo' },
   { key: 'blocked',    title: 'BLOQUEADO',   subtitle: 'Esperando E/S',       hint: 'Aguardando operação de entrada/saída' },
-  { key: 'terminated', title: 'TERMINADO',   subtitle: 'Finalizado',          hint: 'Completou toda a sua execução' },
+  { key: 'terminated', title: 'ENCERRADO',   subtitle: 'Finalizado',          hint: 'Completou toda a sua execução' },
 ];
 
 const MODAL_COLORS = {
@@ -63,12 +63,12 @@ const ALGO_FACTS = {
   fifo: [
     { start: 0,   end: 12,  text: 'No FIFO, processos são executados na ordem em que chegaram. O primeiro a entrar na fila é o primeiro a usar a CPU.' },
     { start: 12,  end: 26,  text: 'Sem preempção: o processo em execução não pode ser interrompido. Ele roda até seu burst terminar completamente.' },
-    { start: 26,  end: 44,  text: 'Processos que chegam enquanto a CPU está ocupada ficam no estado PRONTO, aguardando sua vez na fila FIFO.' },
+    { start: 26,  end: 44,  text: 'Processos que chegam enquanto a CPU está ocupada ficam no estado APTO, aguardando sua vez na fila FIFO.' },
     { start: 44,  end: 65,  text: 'Desvantagem do FIFO: processos longos bloqueiam todos os outros — é o "efeito comboio". Processos curtos esperam atrás de longos.' },
     { start: 65,  end: 130, text: 'Observe: cada processo executa completamente antes do próximo começar. Simples, porém não considera a duração dos processos.' },
   ],
   sjf: [
-    { start: 0,   end: 13,  text: 'No SJF, quando a CPU fica livre, escolhe-se o processo com o menor burst total entre os que estão prontos.' },
+    { start: 0,   end: 13,  text: 'No SJF, quando a CPU fica livre, escolhe-se o processo com o menor burst total entre os que estão aptos.' },
     { start: 13,  end: 28,  text: 'SJF minimiza o tempo médio de espera — é matematicamente ótimo entre algoritmos não-preemptivos.' },
     { start: 28,  end: 50,  text: 'Processos que chegam enquanto a CPU está ocupada aguardam. O próximo a rodar é o de menor burst, não o que chegou primeiro.' },
     { start: 50,  end: 75,  text: 'Problema: starvation. Processos longos podem esperar indefinidamente se sempre chegarem processos mais curtos.' },
@@ -77,20 +77,20 @@ const ALGO_FACTS = {
   srtf: [
     { start: 0,   end: 13,  text: 'SRTF é a versão preemptiva do SJF. A cada ciclo, o processo com o MENOR TEMPO RESTANTE recebe a CPU.' },
     { start: 13,  end: 28,  text: 'Quando um novo processo chega, o algoritmo compara seu burst com o tempo restante do processo atual.' },
-    { start: 28,  end: 50,  text: 'Se o novo processo tiver menos tempo restante, o processo atual é preemptado: vai de volta para a fila PRONTO.' },
+    { start: 28,  end: 50,  text: 'Se o novo processo tiver menos tempo restante, o processo atual é preemptado: vai de volta para a fila APTO.' },
     { start: 50,  end: 72,  text: 'SRTF é ótimo em tempo médio de espera entre todos os algoritmos de escalonamento, inclusive os preemptivos.' },
     { start: 72,  end: 130, text: 'Desvantagem: alto overhead de trocas de contexto e risco de starvation para processos de longa duração.' },
   ],
   rr: [
     { start: 0,   end: 6,   text: 'No Round Robin, cada processo recebe um "quantum" — uma fatia fixa de tempo na CPU. Aqui, o quantum é de 3 ciclos.' },
-    { start: 6,   end: 13,  text: 'Os processos chegam escalonadamente. Ao chegar, passam por NOVO e vão para o fim da fila de PRONTOS.' },
+    { start: 6,   end: 13,  text: 'Os processos chegam escalonadamente. Ao chegar, passam por NOVO e vão para o fim da fila de APTOS.' },
     { start: 13,  end: 20,  text: 'É uma fila FIFO: primeiro a chegar, primeiro a sair. O processo no início da fila recebe a CPU.' },
     { start: 20,  end: 28,  text: 'O processo pode rodar por até 3 ciclos antes de ser preemptado. Se terminar antes, libera a CPU imediatamente.' },
     { start: 28,  end: 36,  text: 'Quando o quantum expira, se ainda tem trabalho, o processo volta para o FIM da fila — nunca para o início!' },
     { start: 36,  end: 46,  text: 'Processos de E/S: após executar 1 ciclo, solicitam I/O e vão para BLOQUEADO por 3 ciclos.' },
     { start: 46,  end: 56,  text: 'Enquanto há processos bloqueados, a CPU não fica ociosa — outros processos continuam sendo escalonados.' },
-    { start: 56,  end: 66,  text: 'Quando a E/S termina, o processo volta para o FIM da fila de prontos — não reassume imediatamente a CPU.' },
-    { start: 66,  end: 78,  text: 'Processos CPU-bound apenas alternam entre PRONTO e EXECUTANDO até completar seu tempo total de CPU.' },
+    { start: 56,  end: 66,  text: 'Quando a E/S termina, o processo volta para o FIM da fila de aptos — não reassume imediatamente a CPU.' },
+    { start: 66,  end: 78,  text: 'Processos CPU-bound apenas alternam entre APTO e EXECUTANDO até completar seu tempo total de CPU.' },
     { start: 78,  end: 92,  text: 'O Round Robin é justo: todos recebem fatias iguais. A desvantagem é o overhead das trocas de contexto frequentes.' },
     { start: 92,  end: 130, text: 'Observe os cards transitando entre os cinco estados até todos terminarem. Esta é a essência do Round Robin.' },
   ],
@@ -214,10 +214,10 @@ function GanttChart({ timeline, stepIdx, procs }) {
 
   const legendItems = [
     { bg: '#66BB6A', label: 'Executando (R)' },
-    { bg: '#FCEFA5', label: 'Pronto (P)' },
+    { bg: '#FCEFA5', label: 'Apto (P)' },
     { bg: '#EF9A9A', label: 'Bloqueado (B)' },
     { bg: '#EFEFEF', label: 'Novo (N)' },
-    { bg: '#B0BEC5', label: 'Terminado (✓)' },
+    { bg: '#B0BEC5', label: 'Encerrado (✓)' },
   ];
 
   return (
@@ -422,8 +422,8 @@ function ProcessCard({ proc, cycle, timeline, termOrder, tweaks, procIds }) {
   const tag = `P${proc.id}`;
   const ranThisCycle =
     note.includes(`${tag} → BLOQUEADO`) ||
-    note.includes(`${tag} → PRONTO`) ||
-    note.includes(`${tag} TERMINADO`) ||
+    note.includes(`${tag} → APTO`) ||
+    note.includes(`${tag} ENCERRADO`) ||
     (timeline[curIdx] && timeline[curIdx].running && timeline[curIdx].running.id === proc.id);
 
   const runningPos = slotToXY('running', 0, tweaks);

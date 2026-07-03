@@ -71,7 +71,7 @@
           if (p.blockLeft === 0) {
             p.state = 'ready';
             readyQueue.push(id);
-            events.push(`P${id} desbloqueia → PRONTO`);
+            events.push(`P${id} desbloqueia → APTO`);
           }
         }
       }
@@ -81,7 +81,7 @@
         if (procs[id].state === 'new' && meta[id].arrival === cycle) {
           procs[id].state = 'ready';
           readyQueue.push(id);
-          events.push(`P${id} chega → PRONTO`);
+          events.push(`P${id} chega → APTO`);
         }
       }
 
@@ -105,7 +105,7 @@
         // Phase D: post-execution transitions.
         if (p.remaining === 0) {
           p.state = 'terminated';
-          events.push(`P${running} TERMINADO`);
+          events.push(`P${running} ENCERRADO`);
           running = null;
         } else if (meta[running].io && p.quantumLeft === 0) {
           p.state = 'blocked';
@@ -116,7 +116,7 @@
         } else if (p.quantumLeft === 0) {
           p.state = 'ready';
           readyQueue.push(running);
-          events.push(`P${running} → PRONTO`);
+          events.push(`P${running} → APTO`);
           running = null;
         }
       }
@@ -162,7 +162,7 @@
         if (procs[id].state === 'new' && meta[id].arrival === cycle) {
           procs[id].state = 'ready';
           readyQueue.push(id);
-          events.push(`P${id} chega → PRONTO`);
+          events.push(`P${id} chega → APTO`);
         }
       }
       if (running == null && readyQueue.length > 0) {
@@ -177,7 +177,7 @@
         procs[running].remaining--;
         if (procs[running].remaining === 0) {
           procs[running].state = 'terminated';
-          events.push(`P${running} TERMINADO`);
+          events.push(`P${running} ENCERRADO`);
           running = null;
         }
       }
@@ -208,7 +208,7 @@
         if (procs[id].state === 'new' && meta[id].arrival === cycle) {
           procs[id].state = 'ready';
           readyQueue.push(id);
-          events.push(`P${id} chega → PRONTO`);
+          events.push(`P${id} chega → APTO`);
         }
       }
       if (running == null && readyQueue.length > 0) {
@@ -224,7 +224,7 @@
         procs[running].remaining--;
         if (procs[running].remaining === 0) {
           procs[running].state = 'terminated';
-          events.push(`P${running} TERMINADO`);
+          events.push(`P${running} ENCERRADO`);
           running = null;
         }
       }
@@ -255,7 +255,7 @@
         if (procs[id].state === 'new' && meta[id].arrival === cycle) {
           procs[id].state = 'ready';
           readyQueue.push(id);
-          events.push(`P${id} chega → PRONTO`);
+          events.push(`P${id} chega → APTO`);
         }
       }
       if (readyQueue.length > 0) {
@@ -269,7 +269,7 @@
           procs[running].state = 'ready';
           readyQueue.push(running);
           readyQueue.sort((a, b) => procs[a].remaining - procs[b].remaining || a - b);
-          events.push(`P${running} preemptado → PRONTO`);
+          events.push(`P${running} preemptado → APTO`);
           running = readyQueue.shift();
           procs[running].state = 'running';
           events.push(`P${running} EXECUTANDO (menor restante)`);
@@ -281,7 +281,7 @@
         procs[running].remaining--;
         if (procs[running].remaining === 0) {
           procs[running].state = 'terminated';
-          events.push(`P${running} TERMINADO`);
+          events.push(`P${running} ENCERRADO`);
           running = null;
         }
       }

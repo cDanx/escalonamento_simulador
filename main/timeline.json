@@ -40,7 +40,7 @@
   },
   {
     "cycle": 0,
-    "note": "P1 chega → PRONTO | P1 EXECUTANDO | P1 → BLOQUEADO",
+    "note": "P1 chega → APTO | P1 EXECUTANDO | P1 → BLOQUEADO",
     "ranThisCycle": 1,
     "procs": {
       "1": {
@@ -79,7 +79,7 @@
   },
   {
     "cycle": 1,
-    "note": "P2 chega → PRONTO | P2 EXECUTANDO",
+    "note": "P2 chega → APTO | P2 EXECUTANDO",
     "ranThisCycle": 2,
     "procs": {
       "1": {
@@ -161,7 +161,7 @@
   },
   {
     "cycle": 3,
-    "note": "P2 → PRONTO | P1 desbloqueia → PRONTO",
+    "note": "P2 → APTO | P1 desbloqueia → APTO",
     "ranThisCycle": 2,
     "procs": {
       "1": {
@@ -203,7 +203,7 @@
   },
   {
     "cycle": 4,
-    "note": "P3 chega → PRONTO | P1 EXECUTANDO | P1 → BLOQUEADO",
+    "note": "P3 chega → APTO | P1 EXECUTANDO | P1 → BLOQUEADO",
     "ranThisCycle": 1,
     "procs": {
       "1": {
@@ -288,7 +288,7 @@
   },
   {
     "cycle": 6,
-    "note": "P4 chega → PRONTO | P2 TERMINADO",
+    "note": "P4 chega → APTO | P2 ENCERRADO",
     "ranThisCycle": 2,
     "procs": {
       "1": {
@@ -330,7 +330,7 @@
   },
   {
     "cycle": 7,
-    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → PRONTO",
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → APTO",
     "ranThisCycle": 3,
     "procs": {
       "1": {
@@ -372,7 +372,7 @@
   },
   {
     "cycle": 8,
-    "note": "P5 chega → PRONTO | P4 EXECUTANDO",
+    "note": "P5 chega → APTO | P4 EXECUTANDO",
     "ranThisCycle": 4,
     "procs": {
       "1": {
@@ -460,7 +460,7 @@
   },
   {
     "cycle": 10,
-    "note": "P4 → PRONTO | P3 desbloqueia → PRONTO",
+    "note": "P4 → APTO | P3 desbloqueia → APTO",
     "ranThisCycle": 4,
     "procs": {
       "1": {
@@ -635,7 +635,7 @@
   },
   {
     "cycle": 14,
-    "note": "P5 → PRONTO | P1 desbloqueia → PRONTO",
+    "note": "P5 → APTO | P1 desbloqueia → APTO",
     "ranThisCycle": 5,
     "procs": {
       "1": {
@@ -722,7 +722,7 @@
   },
   {
     "cycle": 16,
-    "note": "P4 EXECUTANDO | P4 TERMINADO",
+    "note": "P4 EXECUTANDO | P4 ENCERRADO",
     "ranThisCycle": 4,
     "procs": {
       "1": {
@@ -805,7 +805,7 @@
   },
   {
     "cycle": 18,
-    "note": "P5 EXECUTANDO | P3 desbloqueia → PRONTO",
+    "note": "P5 EXECUTANDO | P3 desbloqueia → APTO",
     "ranThisCycle": 5,
     "procs": {
       "1": {
@@ -891,7 +891,7 @@
   },
   {
     "cycle": 20,
-    "note": "P5 TERMINADO | P1 desbloqueia → PRONTO",
+    "note": "P5 ENCERRADO | P1 desbloqueia → APTO",
     "ranThisCycle": 5,
     "procs": {
       "1": {
@@ -1052,7 +1052,7 @@
   },
   {
     "cycle": 24,
-    "note": "P3 desbloqueia → PRONTO",
+    "note": "P3 desbloqueia → APTO",
     "ranThisCycle": null,
     "procs": {
       "1": {
@@ -1093,7 +1093,7 @@
   },
   {
     "cycle": 25,
-    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → PRONTO",
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → APTO",
     "ranThisCycle": 3,
     "procs": {
       "1": {
@@ -1212,7 +1212,7 @@
   },
   {
     "cycle": 28,
-    "note": "P3 desbloqueia → PRONTO",
+    "note": "P3 desbloqueia → APTO",
     "ranThisCycle": null,
     "procs": {
       "1": {
@@ -1253,7 +1253,7 @@
   },
   {
     "cycle": 29,
-    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → PRONTO",
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → APTO",
     "ranThisCycle": 3,
     "procs": {
       "1": {
@@ -1372,7 +1372,7 @@
   },
   {
     "cycle": 32,
-    "note": "P3 desbloqueia → PRONTO",
+    "note": "P3 desbloqueia → APTO",
     "ranThisCycle": null,
     "procs": {
       "1": {
@@ -1413,7 +1413,7 @@
   },
   {
     "cycle": 33,
-    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → PRONTO",
+    "note": "P3 EXECUTANDO | P3 → BLOQUEADO | P1 desbloqueia → APTO",
     "ranThisCycle": 3,
     "procs": {
       "1": {
@@ -1454,7 +1454,7 @@
   },
   {
     "cycle": 34,
-    "note": "P1 EXECUTANDO | P1 TERMINADO",
+    "note": "P1 EXECUTANDO | P1 ENCERRADO",
     "ranThisCycle": 1,
     "procs": {
       "1": {
@@ -1532,7 +1532,7 @@
   },
   {
     "cycle": 36,
-    "note": "P3 desbloqueia → PRONTO",
+    "note": "P3 desbloqueia → APTO",
     "ranThisCycle": null,
     "procs": {
       "1": {
@@ -1690,7 +1690,7 @@
   },
   {
     "cycle": 40,
-    "note": "P3 desbloqueia → PRONTO",
+    "note": "P3 desbloqueia → APTO",
     "ranThisCycle": null,
     "procs": {
       "1": {
@@ -1848,7 +1848,7 @@
   },
   {
     "cycle": 44,
-    "note": "P3 desbloqueia → PRONTO",
+    "note": "P3 desbloqueia → APTO",
     "ranThisCycle": null,
     "procs": {
       "1": {
@@ -2006,7 +2006,7 @@
   },
   {
     "cycle": 48,
-    "note": "P3 desbloqueia → PRONTO",
+    "note": "P3 desbloqueia → APTO",
     "ranThisCycle": null,
     "procs": {
       "1": {
@@ -2047,7 +2047,7 @@
   },
   {
     "cycle": 49,
-    "note": "P3 EXECUTANDO | P3 TERMINADO",
+    "note": "P3 EXECUTANDO | P3 ENCERRADO",
     "ranThisCycle": 3,
     "procs": {
       "1": {

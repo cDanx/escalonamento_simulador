@@ -125,7 +125,7 @@ const QUIZZES = {
       opts: ['Não, apenas um processo pode estar READY por vez', 'Sim, eles ficam em fila esperando o processador', 'Não, READY é exclusivo como o estado RUNNING', 'Sim, mas apenas se forem do mesmo tipo'],
       ans: 1,
       fc: 'Exato! A fila de READY pode ter muitos processos aguardando — o escalonador decide quem vai para RUNNING.',
-      fi: 'Muitos processos podem estar prontos ao mesmo tempo. Eles ficam em uma fila — o escalonador escolhe quem executa.',
+      fi: 'Muitos processos podem estar aptos ao mesmo tempo. Eles ficam em uma fila — o escalonador escolhe quem executa.',
     },
     {
       q: 'Um processo está lendo um arquivo grande do disco. Enquanto espera a leitura terminar, ele está no estado:',
@@ -138,7 +138,7 @@ const QUIZZES = {
       q: 'Qual é a ordem correta do ciclo de vida típico de um processo simples que não realiza IO?',
       opts: ['NEW → RUNNING → READY → TERMINATED', 'NEW → READY → RUNNING → TERMINATED', 'READY → NEW → RUNNING → TERMINATED', 'NEW → READY → BLOCKED → RUNNING → TERMINATED'],
       ans: 1,
-      fc: 'Perfeito! Esse é o caminho básico: criado, pronto, executando, encerrado.',
+      fc: 'Perfeito! Esse é o caminho básico: criado, apto, executando, encerrado.',
       fi: 'A sequência é: NEW (criado) → READY (aguardando CPU) → RUNNING (executando) → TERMINATED (finalizado).',
     },
     {
@@ -297,7 +297,7 @@ function ProcessosContent({ color }) {
 function EstadosContent({ color }) {
   const estados = [
     { title: 'NEW', sub: 'Novo', desc: 'O processo foi criado, mas ainda não está pronto para executar. O SO está alocando recursos para ele.', analogy: 'Você se inscreveu em uma fila, mas ainda não recebeu sua senha.', bg: '#fafafa', border: '#d4d4d4', ac: '#737373' },
-    { title: 'READY', sub: 'Pronto', desc: 'O processo está pronto para executar e aguardando o processador ficar disponível. Pode haver vários processos em READY ao mesmo tempo.', analogy: 'Você tem a senha na mão e está esperando ser chamado.', bg: '#fef9e7', border: '#f5d76e', ac: '#b7950b' },
+    { title: 'READY', sub: 'Apto', desc: 'O processo está pronto para executar e aguardando o processador ficar disponível. Pode haver vários processos em READY ao mesmo tempo.', analogy: 'Você tem a senha na mão e está esperando ser chamado.', bg: '#fef9e7', border: '#f5d76e', ac: '#b7950b' },
     { title: 'RUNNING', sub: 'Executando', desc: 'O processo está efetivamente usando o processador. Em um núcleo, apenas um processo pode estar RUNNING por vez.', analogy: 'Você está sendo atendido no guichê.', bg: '#e8f5e9', border: '#66bb6a', ac: '#2e7d32' },
     { title: 'BLOCKED', sub: 'Bloqueado', desc: 'O processo está esperando por algo externo — leitura de disco, rede, entrada do usuário. Enquanto espera, libera o processador.', analogy: 'Você precisa buscar um documento. Sai do guichê e fica em espera.', bg: '#fdecec', border: '#ef9a9a', ac: '#c62828' },
     { title: 'TERMINATED', sub: 'Encerrado', desc: 'O processo terminou sua execução. O SO libera os recursos que ele ocupava.', analogy: 'Seu atendimento terminou. Você saiu.', bg: '#eceff1', border: '#90a4ae', ac: '#455a64' },
@@ -392,7 +392,7 @@ function AlgoritmosContent({ color }) {
     },
     {
       name: 'SJF', full: 'Shortest Job First', color: '#47A96A', tag: 'Não-preemptivo',
-      rule: 'Entre os processos prontos, o que tiver o menor burst de CPU executa primeiro.',
+      rule: 'Entre os processos aptos, o que tiver o menor burst de CPU executa primeiro.',
       example: 'P1 (burst 8ms)  P2 (burst 4ms)  P3 (burst 2ms)  —  todos chegam em t=0\n\nExecução: [P3: 0–2]  [P2: 2–6]  [P1: 6–14]\n\nEspera:  P1=6ms  P2=2ms  P3=0ms  →  média: 2,6ms  ← melhor!',
       pros: 'Minimiza o tempo médio de espera — ótimo matematicamente para esse critério.',
       cons: 'Precisa saber o burst antecipadamente. Starvation possível para processos longos.',

@@ -41,7 +41,7 @@ const ALGO_INFO = {
     name: 'SJF', fullName: 'Shortest Job First', color: '#47A96A',
     description: 'Quando a CPU fica livre, escolha o processo com o menor burst total entre os disponíveis. Sem preempção.',
     rules: [
-      'CPU livre → escolhe o processo de menor burst entre os prontos',
+      'CPU livre → escolhe o processo de menor burst entre os aptos',
       'Sem interrupção — o processo roda até burst = 0',
       'Empate de burst → menor ID tem prioridade',
       'Processo que chega enquanto CPU está ocupada espera na fila',
@@ -62,7 +62,7 @@ const ALGO_INFO = {
     description: 'Cada processo recebe no máximo 3 ciclos por vez. Ao esgotar o quantum, volta para o FIM da fila. Fila FIFO.',
     rules: [
       'Cada processo recebe até 3 ciclos por vez (quantum)',
-      'Ao esgotar o quantum, volta para o FIM da fila de prontos',
+      'Ao esgotar o quantum, volta para o FIM da fila de aptos',
       'Novos processos entram no FIM da fila na ordem de chegada',
       'Se terminar antes do quantum, libera a CPU imediatamente',
     ],
@@ -494,7 +494,7 @@ function ErrorFeedback({ procs, totalCycles, userSchedule, correctSchedule, time
       } else if (algo === 'rr') {
         msg = note.includes('quantum')
           ? `Round Robin: o quantum de ${uProc} expirou. O processo vai para o FIM da fila — não fica na CPU.`
-          : `Round Robin: a fila FIFO determina que ${cProc} é o próximo. Verifique a ordem da fila de prontos.`;
+          : `Round Robin: a fila FIFO determina que ${cProc} é o próximo. Verifique a ordem da fila de aptos.`;
       }
 
       list.push({ cycle: i, msg });

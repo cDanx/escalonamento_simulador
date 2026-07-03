@@ -36,10 +36,10 @@ const MODAL_X_START = 40;
 
 const MODALS = [
   { key: 'new',        title: 'NOVO',        subtitle: 'Recém-criado',        hint: 'Processo acaba de chegar ao sistema' },
-  { key: 'ready',      title: 'PRONTO',      subtitle: 'Aguardando CPU',      hint: 'Fila FIFO — próximo a executar' },
+  { key: 'ready',      title: 'APTO',      subtitle: 'Aguardando CPU',      hint: 'Fila FIFO — próximo a executar' },
   { key: 'running',    title: 'EXECUTANDO',  subtitle: 'Na CPU',              hint: 'Possui a CPU por até quantum ciclos' },
   { key: 'blocked',    title: 'BLOQUEADO',   subtitle: 'Esperando E/S',       hint: 'Processo de E/S espera 3 ciclos' },
-  { key: 'terminated', title: 'TERMINADO',   subtitle: 'Finalizado',          hint: 'Completou toda sua execução' },
+  { key: 'terminated', title: 'ENCERRADO',   subtitle: 'Finalizado',          hint: 'Completou toda sua execução' },
 ];
 
 const MODAL_COLORS = {
@@ -182,10 +182,10 @@ function GanttChart({ timeline, stepIdx, procs }) {
 
   const legendItems = [
     { bg: '#66BB6A', label: 'Executando (R)' },
-    { bg: '#FCEFA5', label: 'Pronto (P)' },
+    { bg: '#FCEFA5', label: 'Apto (P)' },
     { bg: '#EF9A9A', label: 'Bloqueado (B)' },
     { bg: '#EFEFEF', label: 'Novo (N)' },
-    { bg: '#B0BEC5', label: 'Terminado (✓)' },
+    { bg: '#B0BEC5', label: 'Encerrado (✓)' },
   ];
 
   return (
@@ -424,8 +424,8 @@ function ProcessCard({ proc, cycle, timeline, termOrder, tweaks, procIds }) {
   const tag = `P${proc.id}`;
   const ranThisCycle =
     note.includes(`${tag} → BLOQUEADO`) ||
-    note.includes(`${tag} → PRONTO`) ||
-    note.includes(`${tag} TERMINADO`) ||
+    note.includes(`${tag} → APTO`) ||
+    note.includes(`${tag} ENCERRADO`) ||
     (timeline[curIdx] && timeline[curIdx].running && timeline[curIdx].running.id === proc.id);
 
   // Posição de "running" (slot 0 do modal Executando) para forçar passagem visual.
@@ -579,13 +579,13 @@ function ProcessCardVisual({ proc, x, y, w, h, state, remaining, blockLeft, quan
 const FACTS = [
   { start: 0,  end: 6,   text: 'No Round Robin, cada processo recebe um "quantum" — uma fatia fixa de tempo na CPU. Aqui, o quantum é de 3 ciclos.' },
   { start: 6,  end: 13,  text: 'Os processos chegam escalonadamente: P1 no ciclo 0, P2 no ciclo 1, P3 no ciclo 4, P4 no ciclo 6, P5 no ciclo 8.' },
-  { start: 13, end: 20,  text: 'Ao chegar, o processo passa por NOVO e vai para o fim da fila de PRONTOS. É uma fila FIFO: primeiro a chegar, primeiro a sair.' },
+  { start: 13, end: 20,  text: 'Ao chegar, o processo passa por NOVO e vai para o fim da fila de APTOS. É uma fila FIFO: primeiro a chegar, primeiro a sair.' },
   { start: 20, end: 28,  text: 'O processo no início da fila recebe a CPU e vira EXECUTANDO. Ele pode rodar por até 3 ciclos antes de ser preemptado.' },
-  { start: 28, end: 36,  text: 'Quando o quantum expira, se ainda tem trabalho, o processo volta para o FIM da fila de prontos — nunca para o início!' },
+  { start: 28, end: 36,  text: 'Quando o quantum expira, se ainda tem trabalho, o processo volta para o FIM da fila de aptos — nunca para o início!' },
   { start: 36, end: 46,  text: 'P1 e P3 são processos de E/S: após executar 1 ciclo, eles solicitam I/O e vão para BLOQUEADO por 3 ciclos (operação de leitura/escrita).' },
   { start: 46, end: 56,  text: 'Enquanto P1 ou P3 estão bloqueados, a CPU não fica ociosa — outros processos continuam sendo escalonados normalmente.' },
-  { start: 56, end: 66,  text: 'Quando a E/S termina, o processo volta para o FIM da fila de prontos — não reassume imediatamente a CPU.' },
-  { start: 66, end: 78,  text: 'Processos CPU-bound (P2, P4, P5) apenas alternam entre PRONTO e EXECUTANDO até completar seu tempo total.' },
+  { start: 56, end: 66,  text: 'Quando a E/S termina, o processo volta para o FIM da fila de aptos — não reassume imediatamente a CPU.' },
+  { start: 66, end: 78,  text: 'Processos CPU-bound (P2, P4, P5) apenas alternam entre APTO e EXECUTANDO até completar seu tempo total.' },
   { start: 78, end: 92,  text: 'O Round Robin é justo: todos recebem fatias iguais. A desvantagem é o overhead das trocas de contexto frequentes.' },
   { start: 92, end: 130, text: 'Observe a dinâmica: cards coloridos transitando entre os cinco estados até todos terminarem. Esta é a essência do Round Robin.' },
 ];

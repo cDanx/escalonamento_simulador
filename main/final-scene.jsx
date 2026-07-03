@@ -24,7 +24,7 @@ const FS_ZONE_DEFS = [
   { key: 'running',    label: 'CPU',       sub: 'Executando',          bg:'#F0FDF4', border:'#4ADE80', accent:'#15803D', hdr:'#DCFCE7' },
   { key: 'queueB',     label: 'FILA B',    sub: 'Prioridade baixa',    bg:'#F5F3FF', border:'#A78BFA', accent:'#6D28D9', hdr:'#EDE9FE' },
   { key: 'blocked',    label: 'BLOQUEADO', sub: 'Aguardando E/S',      bg:'#FFF1F2', border:'#FCA5A5', accent:'#B91C1C', hdr:'#FEE2E2' },
-  { key: 'terminated', label: 'TERMINADO', sub: 'Finalizado',          bg:'#F8FAFC', border:'#CBD5E1', accent:'#475569', hdr:'#F1F5F9' },
+  { key: 'terminated', label: 'ENCERRADO', sub: 'Finalizado',          bg:'#F8FAFC', border:'#CBD5E1', accent:'#475569', hdr:'#F1F5F9' },
 ];
 
 const FS_PROC_COLORS = ['#4A7FE8', '#47A96A', '#E8794A', '#B85AC4', '#E8A825'];

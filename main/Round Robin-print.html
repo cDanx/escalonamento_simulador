@@ -76,10 +76,10 @@
   <h2>Os cinco estados do processo</h2>
   <div class="states">
     <div class="state s-new"><div class="label">ESTADO 1</div><div class="title">NOVO</div><div class="sub">Recém-criado</div><div class="hint">Processo acaba de chegar ao sistema</div></div>
-    <div class="state s-ready"><div class="label">ESTADO 2</div><div class="title">PRONTO</div><div class="sub">Aguardando CPU</div><div class="hint">Fila FIFO — próximo a executar</div></div>
+    <div class="state s-ready"><div class="label">ESTADO 2</div><div class="title">APTO</div><div class="sub">Aguardando CPU</div><div class="hint">Fila FIFO — próximo a executar</div></div>
     <div class="state s-run"><div class="label">ESTADO 3</div><div class="title">EXECUTANDO</div><div class="sub">Na CPU (quantum=3)</div><div class="hint">Possui a CPU por até 3 ciclos</div></div>
     <div class="state s-blk"><div class="label">ESTADO 4</div><div class="title">BLOQUEADO</div><div class="sub">Esperando E/S</div><div class="hint">Processo de E/S espera 3 ciclos</div></div>
-    <div class="state s-term"><div class="label">ESTADO 5</div><div class="title">TERMINADO</div><div class="sub">Finalizado</div><div class="hint">Completou toda sua execução</div></div>
+    <div class="state s-term"><div class="label">ESTADO 5</div><div class="title">ENCERRADO</div><div class="sub">Finalizado</div><div class="hint">Completou toda sua execução</div></div>
   </div>
 
   <h2>Os 5 processos deste exemplo</h2>
@@ -94,28 +94,28 @@
 
 <div class="page">
   <h1>Diagrama de Gantt — execução ciclo a ciclo</h1>
-  <div class="subtitle">Cada barra mostra onde o processo estava em cada ciclo. R = Executando, P = Pronto (fila), B = Bloqueado (E/S), ✓ = Terminado.</div>
+  <div class="subtitle">Cada barra mostra onde o processo estava em cada ciclo. R = Executando, P = Apto (fila), B = Bloqueado (E/S), ✓ = Encerrado.</div>
 
   <div class="axis"><div></div><div class="ticks" id="ticks"></div></div>
   <div class="gantt" id="gantt"></div>
 
   <div class="legend">
     <div class="item"><span class="sw" style="background:#66BB6A"></span>Executando (R)</div>
-    <div class="item"><span class="sw" style="background:#F5D76E"></span>Pronto (P)</div>
+    <div class="item"><span class="sw" style="background:#F5D76E"></span>Apto (P)</div>
     <div class="item"><span class="sw" style="background:#EF9A9A"></span>Bloqueado (B)</div>
     <div class="item"><span class="sw" style="background:#D4D4D4"></span>Novo (N)</div>
-    <div class="item"><span class="sw" style="background:#90A4AE"></span>Terminado (✓)</div>
+    <div class="item"><span class="sw" style="background:#90A4AE"></span>Encerrado (✓)</div>
   </div>
 
   <h2>Curiosidades do Round Robin</h2>
   <div class="facts">
     <div class="fact"><span class="num">1</span>No Round Robin, cada processo recebe um "quantum" — uma fatia fixa de tempo na CPU. Aqui, o quantum é de 3 ciclos.</div>
-    <div class="fact"><span class="num">2</span>Ao chegar, o processo passa por NOVO e vai para o fim da fila de PRONTOS. É uma fila FIFO: primeiro a chegar, primeiro a sair.</div>
+    <div class="fact"><span class="num">2</span>Ao chegar, o processo passa por NOVO e vai para o fim da fila de APTOS. É uma fila FIFO: primeiro a chegar, primeiro a sair.</div>
     <div class="fact"><span class="num">3</span>O processo no início da fila recebe a CPU e vira EXECUTANDO. Ele pode rodar por até 3 ciclos antes de ser preemptado.</div>
-    <div class="fact"><span class="num">4</span>Quando o quantum expira, se ainda tem trabalho, o processo volta para o FIM da fila de prontos — nunca para o início.</div>
+    <div class="fact"><span class="num">4</span>Quando o quantum expira, se ainda tem trabalho, o processo volta para o FIM da fila de aptos — nunca para o início.</div>
     <div class="fact"><span class="num">5</span>P1 e P3 são processos de E/S: ao terminar seu quantum, vão para BLOQUEADO por 3 ciclos (tempo de leitura/escrita no dispositivo).</div>
     <div class="fact"><span class="num">6</span>Enquanto P1 ou P3 estão bloqueados, a CPU não fica ociosa — outros processos continuam sendo escalonados normalmente.</div>
-    <div class="fact"><span class="num">7</span>Quando a E/S termina, o processo volta para o FIM da fila de prontos — não reassume imediatamente a CPU.</div>
+    <div class="fact"><span class="num">7</span>Quando a E/S termina, o processo volta para o FIM da fila de aptos — não reassume imediatamente a CPU.</div>
     <div class="fact"><span class="num">8</span>O Round Robin é justo: todos recebem fatias iguais. A desvantagem é o overhead das trocas de contexto frequentes.</div>
   </div>
 </div>
