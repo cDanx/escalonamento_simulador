@@ -85,13 +85,17 @@ A navegação é dividida em dois módulos. Cada tópico do módulo conceitual s
 
    **Windows:** duplo-clique em `iniciar.bat` na raiz do projeto.
 
-   **Linux/Mac:**
+   **Linux/Mac:** abra o terminal na pasta do projeto e rode:
 ```bash
    cd main
    python3 -m http.server 8080
 ```
+   > Requer Python 3 instalado (`python3 --version` para verificar). Em algumas
+   > distribuições o comando pode ser apenas `python`.
 
-3. Acesse `http://localhost:8080/index.html`.
+3. Acesse `http://localhost:8080/index.html` no navegador.
+
+4. Para encerrar o servidor, pressione `Ctrl + C` no terminal.
 
 ---
 
